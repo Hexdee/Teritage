@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Fredoka } from 'next/font/google';
 import './globals.css';
+import { ThemeProvider } from '@/components/themes/theme.provider';
 
 const fredoka = Fredoka({
   variable: '--font-fredoka-sans',
@@ -20,7 +21,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${fredoka.variable} antialiased`}>
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

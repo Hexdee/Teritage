@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
-import { CREATE_PIN_URL } from '@/config/path';
 
 const FormSchema = z.object({
   username: z.string().min(2, {
@@ -16,8 +15,7 @@ const FormSchema = z.object({
   }),
 });
 
-export function CreateUsernameForm() {
-  const router = useRouter();
+export function CreateUsernameForm({ handleNext }: ICreateUsernameForm) {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -27,7 +25,7 @@ export function CreateUsernameForm() {
 
   function onSubmit(values: z.infer<typeof FormSchema>) {
     console.log(values);
-    router.push(CREATE_PIN_URL);
+    handleNext();
   }
 
   return (
