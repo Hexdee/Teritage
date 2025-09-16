@@ -11,7 +11,7 @@ export default function Introduction({ handleNext, className }: INextPage) {
           If you die or lose your recovery phrase, your crypto is gone forever. Inheritance keeps it safe for those you trust.
         </p>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-4">
         <h1 className="text-white font-medium text-2xl">How it works:</h1>
         <div className="flex space-x-2 items-center">
           <div className="bg-muted w-2 h-2 rounded-full" />

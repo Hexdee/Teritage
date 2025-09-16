@@ -18,3 +18,9 @@ interface INextPage {
   handleNext: () => void;
   className?: string;
 }
+
+interface ISelectWalletNextPage {
+  handleNext: () => void;
+  className?: string;
+  handleViewWallet: () => void;
+}

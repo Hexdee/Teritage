@@ -1,10 +1,10 @@
 import Image from 'next/image';
 import { PencilIcon2 } from '../icons';
 
-export const SelectWallet = ({ handleNext }: INextPage) => {
+export const SelectWallet = ({ handleNext, handleViewWallet }: ISelectWalletNextPage) => {
   return (
     <div className="grid grid-cols-2 gap-4">
-      <div className="p-1 border-2 border-primary rounded-md cursor-pointer hover:border-primary/95">
+      <div className="p-1 border-2 border-primary rounded-md cursor-pointer hover:border-primary/95" onClick={handleViewWallet}>
         <div className="bg-primary rounded-md p-4 space-y-8 hover:bg-primary/95 transition">
           <div className="flex items-center justify-between">
             <div className="flex space-x-2 items-center">

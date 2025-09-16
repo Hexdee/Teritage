@@ -1,9 +1,13 @@
+'use client';
 import BeneficiaryInfoForm from '@/components/forms/beneficiary-info-form';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { TOKEN_ALLOCATION_URL } from '@/config/path';
 import { Plus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function BeneficiaryInformation() {
+  const router = useRouter();
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -19,7 +23,7 @@ export default function BeneficiaryInformation() {
         <Separator />
       </div>
 
-      <BeneficiaryInfoForm />
+      <BeneficiaryInfoForm handleNext={() => router.push(TOKEN_ALLOCATION_URL)} />
     </div>
   );
 }

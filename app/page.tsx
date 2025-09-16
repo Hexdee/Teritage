@@ -1,3 +1,6 @@
+import { SIGN_UP_URL } from '@/config/path';
+import { redirect } from 'next/navigation';
+
 export default function Home() {
-  return <div className=""></div>;
+  redirect(SIGN_UP_URL);
 }

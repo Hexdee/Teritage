@@ -8,8 +8,6 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useRouter } from 'next/navigation';
-import { TOKEN_ALLOCATION_URL } from '@/config/path';
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Info } from 'lucide-react';
@@ -26,11 +24,10 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export default function BeneficiaryInfoForm() {
+export default function BeneficiaryInfoForm({ handleNext }: INextPage) {
   const [openEVMTooltip, setOpenEVMTooltip] = React.useState<boolean>(false);
   const [openNotify, setOpenNotify] = React.useState<boolean>(false);
 
-  const router = useRouter();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -44,7 +41,7 @@ export default function BeneficiaryInfoForm() {
 
   function onSubmit(values: FormValues) {
     console.log(values);
-    router.push(TOKEN_ALLOCATION_URL);
+    handleNext();
   }
 
   return (
