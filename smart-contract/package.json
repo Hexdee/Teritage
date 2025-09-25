@@ -1,0 +1,17 @@
+{
+  "name": "teritage-smart-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "hardhat compile",
+    "lint": "solhint 'contracts/**/*.sol'",
+    "test": "hardhat test"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@openzeppelin/contracts": "^5.0.2",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.19.0",
+    "solhint": "^3.6.1"
+  }
+}
