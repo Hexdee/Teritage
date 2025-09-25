@@ -1,12 +1,14 @@
+import { cn } from '@/lib/utils';
 import React from 'react';
 
 type CircularProgressProps = {
   value: number;
   size?: number;
   strokeWidth?: number;
+  textClassName?: string;
 };
 
-export function CircularProgress({ value, size = 180, strokeWidth = 14 }: CircularProgressProps) {
+export function CircularProgress({ value, size = 180, strokeWidth = 14, textClassName }: CircularProgressProps) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (value / 100) * circumference;
@@ -45,7 +47,7 @@ export function CircularProgress({ value, size = 180, strokeWidth = 14 }: Circul
         </defs>
       </svg>
       {/* Center Text */}
-      <span className="absolute text-white text-4xl font-medium">{value}%</span>
+      <span className={cn('absolute text-inverse text-4xl font-medium', textClassName)}>{value}%</span>
     </div>
   );
 }

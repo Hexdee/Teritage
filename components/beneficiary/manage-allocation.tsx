@@ -1,19 +1,16 @@
-'use client';
-import { PencilIcon } from '@/components/icons';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Slider } from '@/components/ui/slider';
-import { BENEFICIARY_INFO_URL, SUCCESS_ALLOCATION_URL } from '@/config/path';
 import Link from 'next/link';
+import { Avatar, AvatarFallback } from '../ui/avatar';
+import { BENEFICIARY_INFO_URL } from '@/config/path';
+import { Button } from '../ui/button';
+import { PencilIcon } from '../icons';
+import { Separator } from '../ui/separator';
+import { Slider } from '../ui/slider';
 import { useState } from 'react';
 
-export default function TokenAllocation() {
+export default function ManageAllocation() {
   const [percentage, setPercentage] = useState<number[]>([0]);
   return (
     <div className="space-y-4">
-      <h5 className="font-medium text-lg text-inverse">Beneficiary Information</h5>
-
       <div className="border rounded-lg p-4 flex space-x-2 justify-between">
         <div className="space-y-4">
           <div>
@@ -71,9 +68,7 @@ export default function TokenAllocation() {
         </div>
       </div>
 
-      <Link href={SUCCESS_ALLOCATION_URL}>
-        <Button>Allocate</Button>
-      </Link>
+      <Button>Save changes</Button>
     </div>
   );
 }

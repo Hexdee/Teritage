@@ -10,9 +10,9 @@ export default function WalletSuccess({ handleNext }: INextPage) {
         <h1>Wallet Connected Successfully</h1>
       </div>
 
-      <Label className="text-white">Information</Label>
+      <Label className="text-inverse">Information</Label>
       <div className="grid grid-cols-2 gap-4 text-sm">
-        <p className="text-white">Wallet</p>
+        <p className="text-inverse">Wallet</p>
         <div className="flex space-x-2 justify-end">
           <Image src="/wallet-1.png" alt="wallet" width={20} height={20} />
           <p className="text-muted">Coinbase</p>
@@ -20,7 +20,7 @@ export default function WalletSuccess({ handleNext }: INextPage) {
       </div>
 
       <div className="grid grid-cols-2 gap-4 text-sm">
-        <p className="text-white">Address</p>
+        <p className="text-inverse">Address</p>
         <div className="flex space-x-2 justify-end">
           <Image src="/wallet-1.png" alt="wallet" width={20} height={20} />
           <p className="text-muted">0x3A9...F6D1</p>
@@ -28,7 +28,7 @@ export default function WalletSuccess({ handleNext }: INextPage) {
       </div>
 
       <div className="grid grid-cols-2 gap-4 text-sm">
-        <p className="text-white">Tokens</p>
+        <p className="text-inverse">Tokens</p>
         <div className="flex space-x-2 justify-end">
           <Image src="/wallet-collection.png" alt="wallet collections" width={44} height={20} />
         </div>

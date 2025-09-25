@@ -12,9 +12,9 @@ export default function Layout({ children }: { children: ReactNode }) {
     <div className="py-12 px-24 space-y-12 fixed w-full">
       <div className="flex justify-between items-center">
         <button onClick={() => router.back()}>
-          <ChevronLeft size={20} className="text-white" />
+          <ChevronLeft size={20} className="text-inverse" />
         </button>
-        <div className="flex space-x-2 items-center text-white">
+        <div className="flex space-x-2 items-center text-inverse">
           <Image src="/logo.png" width={32} height={34} alt="logo" />
           <p className="text-lg">Teritage</p>
         </div>

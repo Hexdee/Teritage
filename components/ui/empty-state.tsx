@@ -11,7 +11,7 @@ export default function EmptyState() {
         </div>
       </div>
       <div className="text-center mx-auto w-[70%]">
-        <p className="text-white">Secure your Legacy</p>
+        <p className="text-inverse">Secure your Legacy</p>
         <p className="text-muted-foreground">Add tokens to your wallet to allocate assets for inheritance.</p>
       </div>
       <div className="space-y-2 w-[15%]">

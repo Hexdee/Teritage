@@ -22,3 +22,13 @@ export const WALLET_URL: string = '/wallet';
 export const BENEFICIARY_URL: string = '/beneficiary';
 export const ACTIVITY_URL: string = '/activity';
 export const SETTINGS_URL: string = '/settings';
+
+// Settings
+export const MANAGE_WALLETS_URL: string = '/settings/manage-wallets';
+export const CHECK_IN_PROTOCOL_URL: string = '/settings/check-in-protocol';
+export const NOTIFICATIONS_URL: string = '/settings/notifications';
+export const THEME_URL: string = '/settings/themes';
+export const SECURITY_URL: string = '/settings/security';
+export const CONTACT_US_URL: string = '/settings/contact-us';
+export const PRIVACY_POLICY_URL: string = '/settings/privacy-policy';
+export const TERMS_AND_CONDITION_URL: string = '/settings/terms-of-condition';

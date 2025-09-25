@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { XIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { CloseIcon } from '../icons';
@@ -79,7 +78,7 @@ function DialogFooter({ className, ...props }: React.ComponentProps<'div'>) {
 }
 
 function DialogTitle({ className, ...props }: React.ComponentProps<typeof DialogPrimitive.Title>) {
-  return <DialogPrimitive.Title data-slot="dialog-title" className={cn('text-lg text-white leading-none font-medium', className)} {...props} />;
+  return <DialogPrimitive.Title data-slot="dialog-title" className={cn('text-lg text-inverse leading-none font-medium', className)} {...props} />;
 }
 
 function DialogDescription({ className, ...props }: React.ComponentProps<typeof DialogPrimitive.Description>) {

@@ -61,10 +61,10 @@ DataTableProps) => {
               key={row.id}
               data-state={row.getIsSelected() && 'selected'}
               onClick={() => (handleClickRow ? handleClickRow(row) : null)}
-              className={cn('dark:hover:bg-[#191919] hover:bg-white text-sm  dark:text-white text-dark border-none', handleClickRow && 'cursor-pointer')}
+              className={cn('dark:hover:bg-[#191919] hover:bg-white text-sm  text-inverse text-dark border-none', handleClickRow && 'cursor-pointer')}
             >
               {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id} className="capitalize py-5">
+                <TableCell key={cell.id} className="capitalize py-5 border-t">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
               ))}

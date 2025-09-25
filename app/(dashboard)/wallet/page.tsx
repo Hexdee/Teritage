@@ -11,7 +11,7 @@ export default function Wallet() {
   const [showUnassignedBalance, setShowUnassignedBalance] = useState<boolean>(false);
 
   return (
-    <div className="text-white space-y-8" contentEditable={false}>
+    <div className="text-inverse space-y-8" contentEditable={false}>
       <div className="grid grid-cols-2 gap-4">
         <div className="border rounded-xl p-4 space-y-4">
           <div className="flex space-x-2 text-muted-foreground items-center">
@@ -21,11 +21,11 @@ export default function Wallet() {
             </div>
           </div>
           {showBalance ? (
-            <h1 className="text-white text-5xl font-medium">
+            <h1 className="text-inverse text-5xl font-medium">
               $0.<span className="text-muted-foreground">00</span>
             </h1>
           ) : (
-            <h1 className="text-white text-5xl font-medium">******</h1>
+            <h1 className="text-inverse text-5xl font-medium">******</h1>
           )}
 
           <div className="tect-white flex items-center gap-4">
@@ -47,11 +47,11 @@ export default function Wallet() {
               </div>
             </div>
             {showUnassignedBalance ? (
-              <h1 className="text-white text-5xl font-medium">
+              <h1 className="text-inverse text-5xl font-medium">
                 $0.<span className="text-muted-foreground">00</span>
               </h1>
             ) : (
-              <h1 className="text-white text-5xl font-medium">******</h1>
+              <h1 className="text-inverse text-5xl font-medium">******</h1>
             )}
           </div>
           <div className="flex justify-end">

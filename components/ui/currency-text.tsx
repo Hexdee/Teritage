@@ -15,7 +15,7 @@ export default function CurrencyText({ amount, currency = '$' }: CurrencyProps) 
   const [main, decimal] = formatted.split('.');
 
   return (
-    <h1 className="text-white text-3xl font-medium">
+    <h1 className="text-inverse text-3xl font-medium">
       {main}.<span className="text-muted-foreground">{decimal}</span>
     </h1>
   );

@@ -35,7 +35,7 @@ export default function SelectNewWallet({ handleNext }: ISelectNewWallet) {
         <div className="space-y-4">
           {wallets.map((wallet) => (
             <div
-              className="text-white text-base flex justify-between items-center cursor-pointer space-y-2.5"
+              className="text-inverse text-base flex justify-between items-center cursor-pointer space-y-2.5"
               key={wallet.name}
               role="list"
               onClick={() => handleNext(wallet)}
@@ -61,7 +61,7 @@ interface IConfirmWalletSelection {
 
 export const ConfirmWalletSelection = ({ selectedWallet, handleBack, handleNext }: IConfirmWalletSelection) => {
   return (
-    <div className="text-white flex text-center flex-col justify-center space-y-4">
+    <div className="text-inverse flex text-center flex-col justify-center space-y-4">
       <div className="flex space-x-2 mx-auto">
         <Image src={selectedWallet?.logo || ''} alt={selectedWallet?.name || ''} width={28} height={28} />
         <Link2 size={28} />

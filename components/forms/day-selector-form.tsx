@@ -38,7 +38,7 @@ export function PreferredDaySelector({ form, name }: PreferredDayProps) {
 
   return (
     <div className="space-y-2">
-      <Label className="text-white">Which day of the month?</Label>
+      <Label className="text-inverse">Which day of the month?</Label>
       <Button variant="secondary" type="button" onClick={() => setOpen(true)}>
         <div className="flex w-full justify-between items-center font-light">
           <p>{day}</p>
@@ -51,7 +51,7 @@ export function PreferredDaySelector({ form, name }: PreferredDayProps) {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="sm:max-w-sm">
             <DialogHeader>
-              <DialogTitle className="text-white font-medium">Select Preferred Day</DialogTitle>
+              <DialogTitle className="text-inverse font-medium">Select Preferred Day</DialogTitle>
               <Separator />
             </DialogHeader>
 
@@ -72,7 +72,7 @@ export function PreferredDaySelector({ form, name }: PreferredDayProps) {
                               field.onChange(String(day));
                               setOpen(false);
                             }}
-                            className={`h-10 w-10 rounded-full p-0 text-sm ${selected ? 'bg-blue-600 text-white' : 'bg-neutral-800 hover:bg-neutral-700'}`}
+                            className={`h-10 w-10 rounded-full p-0 text-sm ${selected ? 'bg-blue-600 text-inverse' : 'bg-neutral-800 hover:bg-neutral-700'}`}
                           >
                             {day}
                           </Button>
@@ -86,7 +86,7 @@ export function PreferredDaySelector({ form, name }: PreferredDayProps) {
                           field.onChange('last');
                           setOpen(false);
                         }}
-                        className={`col-span-2 rounded-full ${field.value === 'last' ? 'bg-blue-600 text-white' : 'bg-neutral-800 hover:bg-neutral-700'}`}
+                        className={`col-span-2 rounded-full ${field.value === 'last' ? 'bg-blue-600 text-inverse' : 'bg-neutral-800 hover:bg-neutral-700'}`}
                       >
                         Last Day
                       </Button>

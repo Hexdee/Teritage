@@ -7,7 +7,7 @@ export default function WalletSuccessPage() {
   return (
     <div className="text-muted text-center space-y-6">
       <Image src="/success.png" alt="success" width={600} height={400} className="-mt-6" />
-      <h1 className="px-32 text-white">Your Inheritance Setup is Active</h1>
+      <h1 className="px-32 text-inverse">Your Inheritance Setup is Active</h1>
       <Link href={WALLET_URL}>
         <Button className="w-full">Completed</Button>
       </Link>

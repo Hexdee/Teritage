@@ -3,12 +3,14 @@ import { ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 
 interface IWalletSettings {
   setCurrentStage: (arg: number) => void;
 }
 
 export default function WalletSettings({ setCurrentStage }: IWalletSettings) {
+  const [open, setOpen] = useState<boolean>(false);
   return (
     <div className="space-y-10">
       <div className="p-1 border-2 border-primary rounded-md cursor-pointer hover:border-primary/95">
@@ -20,10 +22,10 @@ export default function WalletSettings({ setCurrentStage }: IWalletSettings) {
 
           <div className="flex justify-between items-center">
             <div>
-              <p className="text-white font-medium">Mayor</p>
+              <p className="text-inverse font-medium">Mayor</p>
               <p className="text-muted-foreground">$2,345.555</p>
             </div>
-            <div className="flex space-x-0.5 items-center text-white bg-[#F2F2F21A] text-sm p-2 rounded-full">
+            <div className="flex space-x-0.5 items-center text-inverse bg-[#F2F2F21A] text-sm p-2 rounded-full">
               <p>Copy Address</p>
               <CopyIcon />
             </div>
@@ -51,7 +53,7 @@ export default function WalletSettings({ setCurrentStage }: IWalletSettings) {
           <ChevronRight size={20} />
         </div>
 
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <div className="flex justify-between items-center cursor-pointer" role="button">
               <div className="flex space-x-2 items-center">
@@ -72,7 +74,9 @@ export default function WalletSettings({ setCurrentStage }: IWalletSettings) {
               </DialogDescription>
             </DialogHeader>
             <div className="flex gap-4">
-              <Button variant="secondary">Cancel</Button>
+              <Button variant="secondary" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
               <Button variant="destructive">Yes, Remove</Button>
             </div>
           </DialogContent>

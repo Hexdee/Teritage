@@ -14,9 +14,9 @@ export default function Layout({ children }: { children: ReactNode }) {
     <div className="py-16 px-24 space-y-12">
       <div className="flex justify-between items-center">
         <button onClick={() => router.back()}>
-          <ChevronLeft size={20} className="text-white" />
+          <ChevronLeft size={20} className="text-inverse" />
         </button>
-        <div className="flex space-x-2 items-center text-white">
+        <div className="flex space-x-2 items-center text-inverse">
           <Image src="/logo.png" width={32} height={34} alt="logo" />
           <p className="text-lg">Teritage</p>
         </div>
@@ -25,7 +25,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <div className="flex justify-center h-full items-center w-full">
         <Card className="sm:max-w-md">
           <CardHeader>
-            <div className="flex justify-between text-white">
+            <div className="flex justify-between text-inverse">
               <h1 className="text-lg font-medium">Connect Wallet</h1>
               <CloseIcon />
             </div>

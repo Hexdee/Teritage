@@ -66,7 +66,7 @@ export const ActionCell = () => {
           <div className="space-y-4 p-4 -mt-4">
             <div className="flex space-x-2 items-center">
               <Image src="/ethereum-logo.png" alt="ethereum" width={40} height={40} />
-              <h1 className="font-medium text-xl text-white">Ethereum</h1>
+              <h1 className="font-medium text-xl text-inverse">Ethereum</h1>
             </div>
 
             <div className="flex items-center justify-between w-full">
@@ -84,12 +84,12 @@ export const ActionCell = () => {
                 <div className="flex space-x-2 items-center">
                   <Image src="/ethereum-logo.png" alt="ethereum" width={40} height={40} />
                   <div>
-                    <h1 className="font-medium text-xl text-white">Ethereum</h1>
+                    <h1 className="font-medium text-xl text-inverse">Ethereum</h1>
                     <p className="text-muted-foreground">0.2ETH</p>
                   </div>
                 </div>
                 <div className="flex space-x-1 text-success items-center">
-                  <p className="text-white">$142.00</p>
+                  <p className="text-inverse">$142.00</p>
                   <p className="text-success">+7.56%</p>
                 </div>
               </div>
@@ -125,7 +125,7 @@ export const CoinCell = ({ data }: IData) => {
     <div className="space-x-2 flex items-center">
       <Image src={data.coin.logo} width={32} height={32} alt={data.coin.title} />
       <div className="space-y-1">
-        <p className="text-white">{data.coin.title}</p>
+        <p className="text-inverse">{data.coin.title}</p>
         <p className="text-muted-foreground">{data.coin.symbol}</p>
       </div>
     </div>

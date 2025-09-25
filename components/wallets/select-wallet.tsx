@@ -26,8 +26,8 @@ export const SelectWallet = ({ handleNext, handleViewWallet }: ISelectWalletNext
         onClick={handleNext}
         role="button"
       >
-        <span className="text-white text-3xl">+</span>
-        <p className="text-white mt-2 text-lg">Add Wallet</p>
+        <span className="text-inverse text-3xl">+</span>
+        <p className="text-inverse mt-2 text-lg">Add Wallet</p>
       </div>
     </div>
   );

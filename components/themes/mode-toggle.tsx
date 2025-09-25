@@ -14,7 +14,7 @@ export function ModeToggle() {
       <Moon
         className={cn(
           'h-[2.2rem] text-muted-foreground w-[2.2rem] rotate-0 scale-100 transition-all p-2',
-          theme === 'dark' && 'bg-card rounded-full text-white'
+          theme === 'dark' && 'bg-card rounded-full text-inverse'
         )}
         onClick={() => setTheme('dark')}
         role="button"
@@ -23,7 +23,7 @@ export function ModeToggle() {
       <Sun
         className={cn(
           'h-[2.2rem] text-muted-foreground w-[2.2rem] rotate-0 scale-100 transition-all p-2',
-          theme === 'light' && 'bg-card rounded-full text-white'
+          theme === 'light' && 'bg-card rounded-full text-inverse'
         )}
         onClick={() => setTheme('light')}
         role="button"

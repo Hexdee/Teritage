@@ -12,7 +12,7 @@ export default function BeneficiaryInformation() {
     <div className="space-y-6">
       <div className="space-y-2">
         <div className="flex justify-between items-center">
-          <h5 className="font-medium text-lg text-white">Beneficiary Information</h5>
+          <h5 className="font-medium text-lg text-inverse">Beneficiary Information</h5>
           <Button variant="secondary" className="w-fit" size="sm">
             <div className="flex space-x-1 items-center">
               <Plus size={14} />
