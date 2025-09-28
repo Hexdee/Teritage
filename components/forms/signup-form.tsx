@@ -9,6 +9,11 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
 import { VERIFY_URL } from '@/config/path';
+import { useMutation } from '@tanstack/react-query';
+import { userSignUp } from '@/config/apis';
+import { toast } from 'sonner';
+import ShowError from '../errors/display-error';
+import { useState } from 'react';
 
 const FormSchema = z.object({
   email: z.string().email({
@@ -18,6 +23,8 @@ const FormSchema = z.object({
 
 export function SignUpForm() {
   const router = useRouter();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -25,14 +32,24 @@ export function SignUpForm() {
     },
   });
 
+  const { mutate, isPending } = useMutation({
+    mutationFn: userSignUp,
+    onSuccess: (response) => {
+      toast.success(response.message);
+      router.push(`${VERIFY_URL}?email=${form.getValues('email')}`);
+    },
+    onError: (error: any) => setErrorMessage(error?.response?.data?.message || 'An error occured while processing'),
+  });
+
   function onSubmit(values: z.infer<typeof FormSchema>) {
-    console.log(values);
-    router.push(VERIFY_URL);
+    setErrorMessage(null);
+    mutate(values);
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <ShowError error={errorMessage} setError={setErrorMessage} />
         <FormField
           control={form.control}
           name="email"
@@ -42,14 +59,14 @@ export function SignUpForm() {
                 <FormLabel className="text-lg">Email Address</FormLabel>
                 <FormDescription>Enter your email to sign up or log in to continue.</FormDescription>
               </div>
-              <FormControl className="mt-2">
+              <FormControl className="">
                 <Input type="email" placeholder="Email address" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" loadingText="Please wait..." isLoading={isPending}>
           Continue
         </Button>
         <p className="text-sm text-muted text-center">

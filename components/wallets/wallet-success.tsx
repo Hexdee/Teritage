@@ -1,8 +1,15 @@
+/* eslint-disable @next/next/no-img-element */
+'use client';
 import Image from 'next/image';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
+import { INextPage } from '@/type';
+import { useAccount } from 'wagmi';
+import { formatAddress } from '@/lib/utils';
 
 export default function WalletSuccess({ handleNext }: INextPage) {
+  const { chain, address, addresses } = useAccount();
+
   return (
     <div className="space-y-4">
       <div className="text-muted text-center space-y-4 max-h-[400px]">
@@ -14,23 +21,25 @@ export default function WalletSuccess({ handleNext }: INextPage) {
       <div className="grid grid-cols-2 gap-4 text-sm">
         <p className="text-inverse">Wallet</p>
         <div className="flex space-x-2 justify-end">
-          <Image src="/wallet-1.png" alt="wallet" width={20} height={20} />
-          <p className="text-muted">Coinbase</p>
+          <img src={`https://api.dicebear.com/7.x/identicon/svg?seed=${address}`} alt="logo" className="rounded-full h-4 w-4" />
+          <p className="text-muted">{chain?.name}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 text-sm">
         <p className="text-inverse">Address</p>
         <div className="flex space-x-2 justify-end">
-          <Image src="/wallet-1.png" alt="wallet" width={20} height={20} />
-          <p className="text-muted">0x3A9...F6D1</p>
+          <img src={`https://api.dicebear.com/7.x/identicon/svg?seed=${address}`} alt="logo" className="rounded-full h-4 w-4" />
+          <p className="text-muted">{formatAddress(address || '')}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 text-sm">
         <p className="text-inverse">Tokens</p>
         <div className="flex space-x-2 justify-end">
-          <Image src="/wallet-collection.png" alt="wallet collections" width={44} height={20} />
+          {addresses?.map((address) => (
+            <img key={address} src={`https://api.dicebear.com/7.x/identicon/svg?seed=${address}`} alt="logo" className="rounded-full h-4 w-4" />
+          ))}
         </div>
       </div>
 

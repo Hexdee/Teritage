@@ -1,6 +1,7 @@
 'use client';
 import SelectNewWallet, { ConfirmWalletSelection } from '@/components/wallets/select-new-wallet';
 import { CREATE_USERNAME_URL } from '@/config/path';
+import { ISelectedWallet } from '@/type';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -11,7 +12,7 @@ export default function SelectWallet() {
   return (
     <div>
       <ConfirmWalletSelection selectedWallet={selectedWallet} handleBack={() => setSelectedWallet(null)} handleNext={() => router.push(CREATE_USERNAME_URL)} />
-      <SelectNewWallet type="new" handleNext={(wallet) => setSelectedWallet(wallet)} />;
+      <SelectNewWallet type="new" handleNext={(wallet: any) => setSelectedWallet(wallet)} />;
     </div>
   );
 }

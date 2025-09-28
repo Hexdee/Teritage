@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { Fredoka } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/themes/theme.provider';
+import { Toaster as Sonner } from '@/components/ui/sonner';
+import TanstackProvider from '@/context/tanstack-provider';
+import '@rainbow-me/rainbowkit/styles.css';
 
 const fredoka = Fredoka({
   variable: '--font-fredoka-sans',
@@ -23,7 +26,10 @@ export default function RootLayout({
     <html lang="en" className={`${fredoka.variable} antialiased`}>
       <body className="font-sans">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {children}
+          <TanstackProvider>
+            {children}
+            <Sonner richColors duration={2000} closeButton position="top-right" />
+          </TanstackProvider>
         </ThemeProvider>
       </body>
     </html>

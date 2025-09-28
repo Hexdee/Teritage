@@ -7,12 +7,16 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useRouter } from 'next/navigation';
-import { SUCCESS_URL } from '@/config/path';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { AUTH_SET_USERNAME } from '@/config/path';
 import InputAdornment from '../ui/input-adornment';
 import FormGroup from '../ui/form-group';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { userSetPassword } from '@/config/apis';
+import { setCookie, getCookie } from 'cookies-next';
+import ShowError from '../errors/display-error';
 
 export const FormSchema = z
   .object({
@@ -33,6 +37,11 @@ export const FormSchema = z
 export function SetPasswordForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const searchParams = useSearchParams();
+  const email = searchParams.get('email') || '';
+
   const router = useRouter();
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
@@ -46,14 +55,25 @@ export function SetPasswordForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof FormSchema>) {
-    console.log(values);
-    router.push(SUCCESS_URL);
+  const { mutate, isPending } = useMutation({
+    mutationFn: userSetPassword,
+    onSuccess: async (response: any) => {
+      await setCookie('teritage_token', response.token);
+      router.push(AUTH_SET_USERNAME);
+    },
+    onError: (error: any) => setErrorMessage(error?.response?.data?.message || 'An error occured while processing'),
+  });
+
+  async function onSubmit(values: z.infer<typeof FormSchema>) {
+    const verificationToken = (await getCookie('teritage_token')) || '';
+    const data = { email, password: values.password, verificationToken };
+    mutate(data);
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <ShowError error={errorMessage} setError={setErrorMessage} />
         <FormField
           control={form.control}
           name="password"
@@ -121,7 +141,7 @@ export function SetPasswordForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" isLoading={isPending} loadingText="Please wait...">
           Continue
         </Button>
         <p className="text-sm text-muted text-center">

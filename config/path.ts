@@ -3,6 +3,7 @@ export const SIGN_UP_URL: string = '/auth/signup';
 export const VERIFY_URL: string = '/auth/verify';
 export const SET_PASSWORD_URL: string = '/auth/set-password';
 export const SUCCESS_URL: string = '/auth/success';
+export const AUTH_SET_USERNAME: string = '/auth/set-username';
 
 // Connect Wallet
 export const CONNECT_WALLET_URL: string = '/connect-wallet/select';
