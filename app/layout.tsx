@@ -24,6 +24,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${fredoka.variable} antialiased`}>
+      <head>
+        <link rel="icon" href="/logo.svg" />
+      </head>
       <body className="font-sans">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TanstackProvider>

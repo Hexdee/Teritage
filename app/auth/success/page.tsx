@@ -9,7 +9,9 @@ import { INHERITANCE_INTRO_URL } from '@/config/path';
 
 export default function SuccessPage() {
   const [isClient, setIsClient] = useState<boolean>(false);
-  const { isConnected } = useAccount();
+  const { isConnected, isConnecting } = useAccount();
+
+  console.log({ isConnecting });
 
   useEffect(() => {
     setIsClient(true);
