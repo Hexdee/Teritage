@@ -1,9 +1,27 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-import { mainnet, polygon, optimism, arbitrum, base } from 'wagmi/chains';
+import {
+  arbitrum,
+  base,
+  mainnet,
+  optimism,
+  polygon,
+  hederaTestnet,
+  hedera,
+} from 'wagmi/chains';
+import { http } from 'wagmi';
 
-export const config = getDefaultConfig({
+export const wagmiConfig = getDefaultConfig({
   appName: 'Teritage',
   projectId: process.env.NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID || '',
-  chains: [mainnet, polygon, optimism, arbitrum, base],
-  ssr: true, // If your dApp uses server side rendering (SSR)
+  ssr: true,
+  chains: [hederaTestnet, mainnet, polygon, optimism, arbitrum, base, hedera],
+  transports: {
+    [hederaTestnet.id]: http(),
+    [hedera.id]: http(),
+    [mainnet.id]: http(),
+    [polygon.id]: http(),
+    [optimism.id]: http(),
+    [arbitrum.id]: http(),
+    [base.id]: http(),
+  },
 });

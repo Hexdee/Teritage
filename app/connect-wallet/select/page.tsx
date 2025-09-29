@@ -1,18 +1,32 @@
 'use client';
-import SelectNewWallet, { ConfirmWalletSelection } from '@/components/wallets/select-new-wallet';
-import { CREATE_USERNAME_URL } from '@/config/path';
-import { ISelectedWallet } from '@/type';
+
+import { CustomConnectButton } from '@/components/ui/connect-button';
+import { SUCCESS_CREATE_PIN_URL } from '@/config/path';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useAccount } from 'wagmi';
+import { useEffect } from 'react';
 
 export default function SelectWallet() {
   const router = useRouter();
-  const [selectedWallet, setSelectedWallet] = useState<ISelectedWallet | null>(null);
+  const { isConnected, isConnecting } = useAccount();
+
+  useEffect(() => {
+    if (isConnected && !isConnecting) {
+      router.replace(SUCCESS_CREATE_PIN_URL);
+    }
+  }, [isConnected, isConnecting, router]);
 
   return (
-    <div>
-      <ConfirmWalletSelection selectedWallet={selectedWallet} handleBack={() => setSelectedWallet(null)} handleNext={() => router.push(CREATE_USERNAME_URL)} />
-      <SelectNewWallet type="new" handleNext={(wallet: any) => setSelectedWallet(wallet)} />;
+    <div className='flex flex-col items-center justify-center space-y-6 text-center'>
+      <h1 className='text-2xl font-semibold text-inverse'>
+        Connect Your Wallet
+      </h1>
+      <p className='text-muted max-w-md'>
+        Link the wallet that will manage your Teritage inheritance plan. You can
+        add additional wallets later from your dashboard.
+      </p>
+
+      <CustomConnectButton />
     </div>
   );
 }

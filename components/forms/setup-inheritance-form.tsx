@@ -10,40 +10,22 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Info, Plus, Trash } from 'lucide-react';
-import { PreferredDaySelector } from './day-selector-form';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useRouter } from 'next/navigation';
 import { BENEFICIARY_INFO_URL } from '@/config/path';
 import { Separator } from '../ui/separator';
-
-const daysOfWeek: string[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+import { useInheritancePlanStore } from '@/store/useInheritancePlanStore';
 
 const formSchema = z
   .object({
-    checkInPeriod: z.string().nonempty('Please select a check-in period'),
-    socialLinks: z.array(
-      z.object({
-        url: z.string().url('Please enter a valid URL'),
-      })
-    ),
-    dayOfWeek: z.string().optional(),
-    preferredDay: z.string().optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.checkInPeriod === 'weekly' && (!data.dayOfWeek || data.dayOfWeek.trim() === '')) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Please select a day in a week',
-        path: ['dayOfWeek'],
-      });
-    }
-    if (data.checkInPeriod === 'monthly' && (!data.preferredDay || data.preferredDay.trim() === '')) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Please select a preferred in the month',
-        path: ['preferredDay'],
-      });
-    }
+    checkInIntervalSeconds: z.string().min(1, 'Please select a check-in period'),
+    socialLinks: z
+      .array(
+        z.object({
+          url: z.string().url('Please enter a valid URL'),
+        })
+      )
+      .min(1, 'Add at least one social link'),
   });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -51,17 +33,15 @@ type FormValues = z.infer<typeof formSchema>;
 export default function SetUpInheritanceForm() {
   const [openTooltip, setOpenTooltip] = React.useState<boolean>(false);
   const router = useRouter();
+  const { checkInIntervalSeconds, socialLinks, setCheckInData } = useInheritancePlanStore();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      checkInPeriod: '',
-      socialLinks: [{ url: '' }],
-      dayOfWeek: '',
-      preferredDay: '',
+      checkInIntervalSeconds: checkInIntervalSeconds ? String(checkInIntervalSeconds) : '',
+      socialLinks: socialLinks.length ? socialLinks : [{ url: '' }],
     },
   });
-
-  const watchCheckInPeriod = form.watch('checkInPeriod');
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -69,18 +49,23 @@ export default function SetUpInheritanceForm() {
   });
 
   function onSubmit(values: FormValues) {
-    console.log(values);
+    const intervalInSeconds = Number(values.checkInIntervalSeconds);
+    const sanitizedLinks = values.socialLinks.map((link) => ({ url: link.url.trim() })).filter((link) => !!link.url);
+
+    setCheckInData({
+      checkInIntervalSeconds: intervalInSeconds,
+      socialLinks: sanitizedLinks.length ? sanitizedLinks : [{ url: '' }],
+    });
+
     router.push(BENEFICIARY_INFO_URL);
   }
-
-  console.log(form.getValues('preferredDay'));
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
-          name="checkInPeriod"
+          name="checkInIntervalSeconds"
           render={({ field }) => (
             <FormItem>
               <FormLabel>How often do you want to be checked-in?</FormLabel>
@@ -91,44 +76,15 @@ export default function SetUpInheritanceForm() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value={String(24 * 60 * 60)}>Every day</SelectItem>
+                  <SelectItem value={String(7 * 24 * 60 * 60)}>Every week</SelectItem>
+                  <SelectItem value={String(30 * 24 * 60 * 60)}>Every month (approx.)</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
             </FormItem>
           )}
         />
-
-        {watchCheckInPeriod === 'weekly' && (
-          <FormField
-            control={form.control}
-            name="dayOfWeek"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Which day of the week?</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select day of the week" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {daysOfWeek.map((day) => (
-                      <SelectItem key={day} value={day}>
-                        {day}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-
-        {watchCheckInPeriod === 'monthly' && <PreferredDaySelector form={form} name="preferredDay" />}
 
         {/* Social Links */}
         <div>

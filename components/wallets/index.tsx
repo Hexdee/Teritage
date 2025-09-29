@@ -30,7 +30,6 @@ export default function AddWalletContent({ setCurrentStage, currentStage }: IAdd
     0: <SelectWallet handleNext={() => setCurrentStage(1)} handleViewWallet={() => setCurrentStage(6)} />,
     1: (
       <SelectNewWallet
-        type="existing"
         handleNext={(wallet) => {
           setSelectedWallet(wallet);
           setCurrentStage(2);
