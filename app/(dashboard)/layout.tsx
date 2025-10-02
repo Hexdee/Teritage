@@ -11,7 +11,8 @@ import { ReactNode, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import AddWalletContent from '@/components/wallets';
-import { WebProvider } from '@/context/web-provider';
+import { DashboardProvider } from '@/context/dashboard-provider';
+import { CustomConnectButton } from '@/components/ui/connect-button';
 
 export default function Layout({ children }: { children: ReactNode }) {
   const [currentStage, setCurrentStage] = useState<number>(0);
@@ -19,7 +20,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   const currentNavigation = sidebar.find((each) => pathname.startsWith(each.default));
 
   return (
-    <WebProvider>
+    <DashboardProvider>
       <div className="h-screen">
         <div className="grid grid-cols-10 h-full">
           <nav className="col-span-2 border-r space-y-8 items-center">
@@ -48,7 +49,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             <div className="border-b w-full py-4 px-8 h-20 grid grid-cols-10 items-center">
               <div className="text-inverse flex space-x-2 col-span-3">
                 {currentNavigation?.icon}
-                <p>{currentNavigation?.title}</p>
+                {/* <p>{currentNavigation?.title}</p> */}
               </div>
               <div className="col-span-7 flex space-x-6 justify-end">
                 <SearchInput inputClassName="w-[300px]" />
@@ -62,6 +63,8 @@ export default function Layout({ children }: { children: ReactNode }) {
                   </div>
                   <div className="w-px h-6 bg-border" />
                 </div>
+
+                <CustomConnectButton />
 
                 <Sheet>
                   <SheetTrigger asChild>
@@ -83,6 +86,6 @@ export default function Layout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </div>
-    </WebProvider>
+    </DashboardProvider>
   );
 }

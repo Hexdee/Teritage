@@ -1,97 +1,83 @@
-/* eslint-disable @typescript-eslint/no-unused-expressions */
 'use client';
-import { Label } from '@/components/ui/label';
-import SearchInput from '@/components/ui/search-input';
-import { ChevronRight, Link2 } from 'lucide-react';
-import Image from 'next/image';
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
+
+import { useEffect } from 'react';
+import { useAccount } from 'wagmi';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { formatAddress } from '@/lib/utils';
+import type { ISelectedWallet } from '@/type';
 
-const wallets = [
-  {
-    logo: '/wallet-2.png',
-    name: 'Coinbase',
-  },
-  {
-    logo: '/wallet-1.png',
-    name: 'Binance',
-  },
-  {
-    logo: '/wallet-3.png',
-    name: 'Solflare',
-  },
-  {
-    logo: '/wallet-4.png',
-    name: 'Rainbow',
-  },
-];
+interface SelectNewWalletProps {
+  handleNext: (wallet: ISelectedWallet) => void;
+}
 
-export default function SelectNewWallet({ handleNext }: ISelectNewWallet) {
+const DEFAULT_WALLET_META: ISelectedWallet = {
+  name: 'Connected Wallet',
+  logo: '/wallet-collection.png',
+};
+
+export default function SelectNewWallet({ handleNext }: SelectNewWalletProps) {
+  const { isConnected, address, isConnecting } = useAccount();
+  const { openConnectModal } = useConnectModal();
+
+  useEffect(() => {
+    if (isConnected && !isConnecting) {
+      handleNext(DEFAULT_WALLET_META);
+    }
+  }, [handleNext, isConnected, isConnecting]);
+
   return (
-    <div className="space-y-4">
-      <>
-        <SearchInput />
+    <div className="flex flex-col items-center justify-center space-y-6 py-6 text-center">
+      <h2 className="text-xl font-semibold text-inverse">Choose a wallet provider</h2>
+      <p className="text-muted max-w-md">
+        RainbowKit supports popular wallets like MetaMask, Coinbase Wallet, Rainbow, and more. Connect one to continue setting up your Teritage plan.
+      </p>
 
-        <div className="space-y-4">
-          {wallets.map((wallet) => (
-            <div
-              className="text-inverse text-base flex justify-between items-center cursor-pointer space-y-2.5"
-              key={wallet.name}
-              role="list"
-              onClick={() => handleNext(wallet)}
-            >
-              <div className="flex items-center space-x-2">
-                <Image src={wallet.logo} alt={wallet.name} width={32} height={32} />
-                <p>{wallet.name}</p>
-              </div>
-              <ChevronRight size={18} />
-            </div>
-          ))}
-        </div>
-      </>
+      <Button type="button" onClick={openConnectModal} className="w-full max-w-sm">
+        {isConnected && address ? `Connected: ${formatAddress(address)}` : 'Select a wallet'}
+      </Button>
+
+      <p className="text-sm text-muted-foreground max-w-sm">
+        Having trouble? Make sure your wallet is unlocked and that the browser extension or mobile app is open.
+      </p>
     </div>
   );
 }
 
-interface IConfirmWalletSelection {
+interface ConfirmWalletSelectionProps {
   selectedWallet: ISelectedWallet | null;
   handleBack: () => void;
   handleNext: () => void;
 }
 
-export const ConfirmWalletSelection = ({ selectedWallet, handleBack, handleNext }: IConfirmWalletSelection) => {
+export const ConfirmWalletSelection = ({ selectedWallet, handleBack, handleNext }: ConfirmWalletSelectionProps) => {
+  const { address, chain } = useAccount();
+  const effectiveWallet = selectedWallet ?? DEFAULT_WALLET_META;
+
   return (
-    <div className="text-inverse flex text-center flex-col justify-center space-y-4">
-      <div className="flex space-x-2 mx-auto">
-        <Image src={selectedWallet?.logo || ''} alt={selectedWallet?.name || ''} width={28} height={28} />
-        <Link2 size={28} />
-        <Image src="/logo.png" alt="Teritage logo" width={28} height={28} />
+    <div className="space-y-6">
+      <div className="text-center space-y-2">
+        <h2 className="text-xl font-semibold text-inverse">Confirm wallet</h2>
+        <p className="text-muted">We will use this wallet address for Teritage smart contract interactions.</p>
       </div>
-      <h2 className="font-medium">Connecting your Wallet</h2>
-      <Label className="text-muted-foreground">Wallets</Label>
 
-      <div className="justify-between flex items-center">
-        <div className="flex space-x-2">
-          <Avatar>
-            <AvatarImage src="https://github.com/shadcn.png" />
-          </Avatar>
-          <p className="text-muted">0x3A9...F6D1</p>
+      <div className="border rounded-lg p-4 flex items-center justify-between">
+        <div className="flex flex-col items-start">
+          <Label className="text-muted text-xs">Wallet</Label>
+          <span className="text-inverse font-medium">{effectiveWallet.name}</span>
+          {chain?.name && <span className="text-muted text-xs mt-1">Network: {chain.name}</span>}
         </div>
-        <Image src="/wallet-collection.png" alt="wallet collections" width={44} height={20} />
+        <span className="text-sm font-mono text-muted">{formatAddress(address || '')}</span>
       </div>
 
-      <div className="w-full flex space-x-2 items-center">
-        <Button variant="secondary" className="w-1/2" onClick={() => handleBack()}>
-          Cancel
+      <div className="flex space-x-3">
+        <Button variant="secondary" className="w-1/2" onClick={handleBack}>
+          Back
         </Button>
-
         <Button className="w-1/2" onClick={handleNext}>
-          Confirm
+          Continue
         </Button>
-      </div>
-
-      <div className="text-muted font-light text-sm bg-card-2 p-4 rounded-bl-4xl rounded-br-4xl">
-        <p>🔒 We do not store your keys or access your funds.</p>
       </div>
     </div>
   );

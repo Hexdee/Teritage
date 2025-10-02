@@ -1,5 +1,6 @@
 // Auth
 export const SIGN_UP_URL: string = '/auth/signup';
+export const LOGIN_URL: string = '/auth/login';
 export const VERIFY_URL: string = '/auth/verify';
 export const SET_PASSWORD_URL: string = '/auth/set-password';
 export const SUCCESS_URL: string = '/auth/success';

@@ -65,6 +65,7 @@ export function SetPasswordForm() {
   });
 
   async function onSubmit(values: z.infer<typeof FormSchema>) {
+    setErrorMessage(null);
     const verificationToken = (await getCookie('teritage_token')) || '';
     const data = { email, password: values.password, verificationToken };
     mutate(data);

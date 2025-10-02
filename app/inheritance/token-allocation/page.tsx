@@ -1,79 +1,341 @@
 'use client';
-import { PencilIcon } from '@/components/icons';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+
+import { useEffect, useState } from 'react';
+import { useForm, useFieldArray } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useAccount } from 'wagmi';
+import { getAddress, isAddress, zeroAddress } from 'viem';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+
 import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Slider } from '@/components/ui/slider';
-import { BENEFICIARY_INFO_URL, SUCCESS_ALLOCATION_URL } from '@/config/path';
-import Link from 'next/link';
-import { useState } from 'react';
+import { BeneficiaryEntry, useInheritancePlanStore } from '@/store/useInheritancePlanStore';
+import { useTeritageContract } from '@/lib/blockchain/useTeritageContract';
+import { SUCCESS_ALLOCATION_URL, BENEFICIARY_INFO_URL, INHERITANCE_SETUP_URL } from '@/config/path';
+import type { TeritageTokenType } from '@/lib/blockchain/constants';
+import { Plus, Trash2 } from 'lucide-react';
+import { formatAddress } from '@/lib/utils';
+import ShowError from '@/components/errors/display-error';
+
+const ZERO_ADDRESS = zeroAddress;
+
+const tokenSchema = z
+  .object({
+    type: z.enum(['ERC20', 'HTS', 'HBAR']),
+    address: z.string().optional(),
+  })
+  .superRefine((token, ctx) => {
+    // Skip address validation for HBAR tokens
+    if (token.type === 'HBAR') {
+      return;
+    }
+
+    // For non-HBAR tokens, address is required
+    if (!token.address) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Enter a token contract address',
+        path: ['address'],
+      });
+      return;
+    }
+
+    // Validate address format
+    if (!isAddress(token.address)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Invalid contract address',
+        path: ['address'],
+      });
+    }
+  });
+
+const formSchema = z
+  .object({
+    tokens: z.array(tokenSchema).min(1, { message: 'Add at least one token to manage' }),
+  })
+  .superRefine((values, ctx) => {
+    const seen = new Set<string>();
+    values.tokens.forEach((token, index) => {
+      const normalized = token.type === 'HBAR' ? ZERO_ADDRESS : token.address ? getAddress(token.address) : '';
+      if (normalized && seen.has(normalized)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Duplicate token',
+          path: ['tokens', index, 'address'],
+        });
+      }
+      if (normalized) {
+        seen.add(normalized);
+      }
+    });
+  });
+
+type FormValues = z.infer<typeof formSchema>;
+
+const formatName = (beneficiary: BeneficiaryEntry) => `${beneficiary.firstName} ${beneficiary.lastName}`.trim();
 
 export default function TokenAllocation() {
-  const [percentage, setPercentage] = useState<number[]>([0]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const router = useRouter();
+  const { address, isConnected } = useAccount();
+  const { createPlan, isPending } = useTeritageContract();
+  const { checkInIntervalSeconds, beneficiaries, tokens, socialLinks, ownerProfile, setTokens } = useInheritancePlanStore();
+
+  const defaultTokens = tokens.length
+    ? tokens.map((token) => ({
+        type: token.type as TeritageTokenType,
+        address: token.address,
+      }))
+    : [
+        {
+          type: 'HBAR' as TeritageTokenType,
+          address: ZERO_ADDRESS,
+        },
+      ];
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      tokens: defaultTokens,
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'tokens',
+  });
+
+  useEffect(() => {
+    if (!checkInIntervalSeconds) {
+      router.replace(INHERITANCE_SETUP_URL);
+    } else if (!beneficiaries.length) {
+      router.replace(BENEFICIARY_INFO_URL);
+    }
+  }, [beneficiaries.length, checkInIntervalSeconds, router]);
+
+  const summaryTotal = beneficiaries.reduce((acc, beneficiary) => acc + beneficiary.sharePercentage, 0);
+
+  async function onSubmit(values: FormValues) {
+    setErrorMessage(null);
+    if (!isConnected || !address) {
+      toast.error('Connect your wallet to continue');
+      return;
+    }
+
+    if (!checkInIntervalSeconds) {
+      toast.error('Check-in interval is missing. Please restart the setup process.');
+      router.replace(INHERITANCE_SETUP_URL);
+      return;
+    }
+
+    if (!beneficiaries.length) {
+      toast.error('Add at least one beneficiary before allocating tokens.');
+      router.replace(BENEFICIARY_INFO_URL);
+      return;
+    }
+
+    try {
+      const normalizedTokens = values.tokens.map((token) => ({
+        type: token.type,
+        address: token.type === 'HBAR' ? ZERO_ADDRESS : getAddress(token.address as string),
+      }));
+
+      const inheritorAddresses = beneficiaries.map((beneficiary) => getAddress(beneficiary.walletAddress));
+      const shares = beneficiaries.map((beneficiary) => Math.round(beneficiary.sharePercentage * 100));
+
+      const sanitizedSocialLinks = socialLinks.map((link) => link.url.trim()).filter((url) => url.length > 0);
+
+      const trimmedOwnerPhone = ownerProfile?.phone?.trim();
+      const trimmedOwnerNotes = ownerProfile?.notes?.trim();
+      const normalizedOwnerProfile = ownerProfile
+        ? {
+            name: ownerProfile.name.trim(),
+            email: ownerProfile.email.trim(),
+            ...(trimmedOwnerPhone ? { phone: trimmedOwnerPhone } : {}),
+            ...(trimmedOwnerNotes ? { notes: trimmedOwnerNotes } : {}),
+          }
+        : null;
+
+      const shouldNotifyBeneficiaries = beneficiaries.some((beneficiary) => beneficiary.notifyBeneficiary);
+
+      const backendPayload =
+        normalizedOwnerProfile && normalizedOwnerProfile.name && normalizedOwnerProfile.email
+          ? {
+              ownerAddress: getAddress(address),
+              user: normalizedOwnerProfile,
+              inheritors: beneficiaries.map((beneficiary) => ({
+                address: getAddress(beneficiary.walletAddress),
+                sharePercentage: Math.round(beneficiary.sharePercentage),
+                name: formatName(beneficiary),
+                email: beneficiary.email.trim(),
+              })),
+              tokens: normalizedTokens.map((token) => ({
+                type: token.type,
+                address: token.address,
+              })),
+              checkInIntervalSeconds,
+              ...(sanitizedSocialLinks.length ? { socialLinks: sanitizedSocialLinks } : {}),
+              ...(shouldNotifyBeneficiaries ? { notifyBeneficiary: true } : {}),
+            }
+          : undefined;
+
+      await createPlan({
+        inheritors: inheritorAddresses,
+        shares,
+        tokens: normalizedTokens.map((token) => ({
+          ...token,
+          address: getAddress(token.address),
+        })),
+        checkInIntervalSeconds,
+        backendPayload,
+      });
+
+      setTokens(
+        normalizedTokens.map((token) => ({
+          type: token.type,
+          address: token.address,
+        }))
+      );
+
+      router.push(SUCCESS_ALLOCATION_URL);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to save inheritance plan';
+      setErrorMessage(message);
+      toast.error('An error occured');
+    }
+  }
+
   return (
-    <div className="space-y-4">
-      <h5 className="font-medium text-lg text-inverse">Beneficiary Information</h5>
-
-      <div className="border rounded-lg p-4 flex space-x-2 justify-between">
-        <div className="space-y-4">
-          <div>
-            <p className="text-muted-foreground text-sm">Available Balance</p>
-            <h2 className="text-4xl font-medium text-inverse">
-              $2,345<span className="text-muted-foreground">.58</span>
-            </h2>
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <h2 className="text-lg font-medium text-inverse">Beneficiaries</h2>
+        <div className="space-y-4 rounded-lg border p-4">
+          {beneficiaries.map((beneficiary, index) => (
+            <div key={`${beneficiary.walletAddress}-${index}`} className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-muted-foreground">Name</p>
+                <p className="text-inverse font-medium">{formatName(beneficiary)}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-muted-foreground">Allocation</p>
+                <p className="text-inverse font-medium">{beneficiary.sharePercentage}%</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Contact</p>
+                <p className="text-inverse truncate">{beneficiary.email}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-muted-foreground">Wallet</p>
+                <p className="font-mono text-xs text-inverse">{formatAddress(beneficiary.walletAddress)}</p>
+              </div>
+            </div>
+          ))}
+          <div className="flex items-center justify-between pt-2 text-sm text-muted-foreground">
+            <span>Total allocation</span>
+            <span className="text-inverse font-semibold">{summaryTotal}%</span>
           </div>
-          <div className="bg-white/5 py-2 px-4 rounded-md w-fit">
-            <p className="text-muted text-sm">
-              Unassigned Balance: <span className="font-medium text-inverse">$2,345.58</span>
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center w-12 h-12 rounded-full border-4 border-primary bg-primary/20 p-2">
-          <span className="text-inverse text-sm font-medium">100%</span>
         </div>
       </div>
 
-      <h3 className="text-lg font-medium text-inverse">Beneficiary</h3>
-      <div className="space-y-4 bg-card border rounded-lg p-4">
-        {/* Top row */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Avatar className="bg-card shadow">
-              <AvatarFallback>PC</AvatarFallback>
-            </Avatar>
-            <span className="font-medium text-inverse">Papi Chuks</span>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-medium text-inverse">Tracked tokens</h2>
+              <Button
+                type="button"
+                variant="secondary"
+                className="flex items-center gap-2 w-fit"
+                onClick={() =>
+                  append({
+                    type: 'ERC20',
+                    address: '',
+                  })
+                }
+              >
+                <Plus className="h-4 w-4" /> Add token
+              </Button>
+            </div>
+
+            {fields.map((field, index) => {
+              const typeValue = form.watch(`tokens.${index}.type`);
+              const isHbar = typeValue === 'HBAR';
+
+              return (
+                <div key={field.id} className="space-y-4 rounded-lg border p-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium text-inverse">Token {index + 1}</h3>
+                    {fields.length > 1 && (
+                      <Button variant="ghost" type="button" size="sm" onClick={() => remove(index)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name={`tokens.${index}.type`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Token type</FormLabel>
+                        <Select
+                          onValueChange={(value: TeritageTokenType) => {
+                            field.onChange(value);
+                            form.setValue(`tokens.${index}.address`, value === 'HBAR' ? ZERO_ADDRESS : '', { shouldValidate: true });
+                          }}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select token type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="HBAR">HBAR (native)</SelectItem>
+                            <SelectItem value="ERC20">ERC-20</SelectItem>
+                            <SelectItem value="HTS">HTS token</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name={`tokens.${index}.address`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Token contract address</FormLabel>
+                        <FormControl>
+                          <Input placeholder={isHbar ? 'HBAR uses the native balance' : '0x...'} disabled={isHbar} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              );
+            })}
           </div>
-          <Link href={BENEFICIARY_INFO_URL}>
-            <Button variant="ghost" size="sm" className="bg-card text-xs text-inverse px-2 py-0.5 h-7" startIcon={<PencilIcon />}>
-              Edit
+
+          <Separator />
+
+          <ShowError error={errorMessage} setError={setErrorMessage} />
+
+          <div className="flex justify-end">
+            <Button type="submit" isLoading={isPending} loadingText="Saving plan...">
+              Save & Activate Plan
             </Button>
-          </Link>
-        </div>
-
-        <div className="text-sm text-muted-foreground grid grid-cols-2">
-          <span className="mr-2 ">EVM Wallet Address:</span>
-          <span className="text-inverse font-mono flex justify-end">0x3A9...F6D1</span>
-        </div>
-
-        <Separator />
-
-        <div>
-          <p className="text-sm text-muted-foreground mb-2">Allotted Percentage</p>
-          <div className="flex items-center gap-3">
-            <div className="bg-card p-4 w-[85%] rounded-lg">
-              <Slider value={percentage} onValueChange={setPercentage} max={100} step={1} className="flex-1" />
-            </div>
-            <div className="bg-card p-4 h-10 flex items-center justify-between w-[15%] rounded-lg">
-              <p className="text-sm text-muted-foreground">{percentage[0]}%</p>
-            </div>
           </div>
-        </div>
-      </div>
-
-      <Link href={SUCCESS_ALLOCATION_URL}>
-        <Button>Allocate</Button>
-      </Link>
+        </form>
+      </Form>
     </div>
   );
 }

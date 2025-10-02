@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { toast } from 'sonner';
 import { WagmiProvider } from 'wagmi';
-import { config } from '@/config/rainbowkit';
+import { wagmiConfig } from '@/config/rainbowkit';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 
 interface TanstackProviderProps {
@@ -33,7 +33,7 @@ const TanstackProvider: React.FC<TanstackProviderProps> = ({ children }) => {
   );
 
   return (
-    <WagmiProvider config={config}>
+    <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>{children}</RainbowKitProvider>
         <ReactQueryDevtools initialIsOpen={false} />
