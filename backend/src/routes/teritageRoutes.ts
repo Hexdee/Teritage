@@ -7,7 +7,6 @@ import {
   handleListActivities,
   handleListCheckIns,
   handleRecordCheckIn,
-  handleRecordClaim,
   handleUpdateTeritage
 } from "../controllers/teritageController.js";
 import { authenticate } from "../middleware/auth.js";
@@ -30,50 +29,26 @@ const router = Router();
  *             type: object
  *             required:
  *               - ownerAddress
- *               - user
  *               - inheritors
  *               - tokens
  *               - checkInIntervalSeconds
  *             properties:
  *               ownerAddress:
  *                 type: string
- *               user:
- *                 type: object
- *                 properties:
- *                   name:
- *                     type: string
- *                   email:
- *                     type: string
- *                     format: email
- *                   phone:
- *                     type: string
- *                   notes:
- *                     type: string
+ *                 description: Blockchain address that owns the on-chain inheritance plan
  *               inheritors:
  *                 type: array
+ *                 description: List of inheritors and their allocation percentages (must sum to 100)
  *                 items:
- *                   type: object
- *                   properties:
- *                     address:
- *                       type: string
- *                     sharePercentage:
- *                       type: integer
- *                       minimum: 1
- *                       maximum: 100
- *                     name:
- *                       type: string
- *                     email:
- *                       type: string
- *                     phone:
- *                       type: string
- *                     notes:
- *                       type: string
+ *                   $ref: '#/components/schemas/TeritageInheritor'
  *               tokens:
  *                 type: array
+ *                 description: Tokens tracked by the inheritance plan
  *                 items:
- *                   type: string
+ *                   $ref: '#/components/schemas/TeritageToken'
  *               checkInIntervalSeconds:
  *                 type: integer
+ *                 description: Required owner check-in cadence in seconds
  *               socialLinks:
  *                 type: array
  *                 items:
@@ -81,6 +56,7 @@ const router = Router();
  *                   format: uri
  *               notifyBeneficiary:
  *                 type: boolean
+ *                 description: Whether inheritors should be notified automatically when the plan is claimed
  *     responses:
  *       201:
  *         description: Teritage plan created
@@ -99,16 +75,12 @@ router.post("/teritages", authenticate, handleCreateTeritage);
 
 /**
  * @openapi
- * /api/teritages/{ownerAddress}:
+ * /api/teritages:
  *   get:
- *     summary: Get Teritage plan details
+ *     summary: Get the authenticated user's Teritage plan
+ *     security:
+ *       - bearerAuth: []
  *     tags: [Teritage]
- *     parameters:
- *       - in: path
- *         name: ownerAddress
- *         required: true
- *         schema:
- *           type: string
  *     responses:
  *       200:
  *         description: Teritage plan details
@@ -123,48 +95,22 @@ router.post("/teritages", authenticate, handleCreateTeritage);
  *             schema:
  *               $ref: '#/components/schemas/ApiMessageResponse'
  */
-router.get("/teritages/:ownerAddress", handleGetTeritage);
+router.get("/teritages", authenticate, handleGetTeritage);
 
 /**
  * @openapi
- * /api/teritages/{ownerAddress}:
- *   put:
- *     summary: Update a Teritage plan
+ * /api/teritages:
+ *   patch:
+ *     summary: Update the authenticated user's Teritage plan
  *     security:
  *       - bearerAuth: []
  *     tags: [Teritage]
- *     parameters:
- *       - in: path
- *         name: ownerAddress
- *         required: true
- *         schema:
- *           type: string
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               user:
- *                 $ref: '#/components/schemas/TeritageUser'
- *               inheritors:
- *                 type: array
- *                 items:
- *                   $ref: '#/components/schemas/TeritageInheritor'
- *               tokens:
- *                 type: array
- *                 items:
- *                   type: string
- *               checkInIntervalSeconds:
- *                 type: integer
- *               socialLinks:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: uri
- *               notifyBeneficiary:
- *                 type: boolean
+ *             $ref: '#/components/schemas/UpdateTeritagePlanRequest'
  *     responses:
  *       200:
  *         description: Teritage plan updated
@@ -185,20 +131,16 @@ router.get("/teritages/:ownerAddress", handleGetTeritage);
  *             schema:
  *               $ref: '#/components/schemas/ApiMessageResponse'
  */
-router.put("/teritages/:ownerAddress", authenticate, handleUpdateTeritage);
+router.patch("/teritages", authenticate, handleUpdateTeritage);
 
 /**
  * @openapi
- * /api/teritages/{ownerAddress}/activities:
-  *   get:
+ * /api/teritages/activities:
+ *   get:
  *     summary: List plan activities
+ *     security:
+ *       - bearerAuth: []
  *     tags: [Teritage]
- *     parameters:
- *       - in: path
- *         name: ownerAddress
- *         required: true
- *         schema:
- *           type: string
  *     responses:
  *       200:
  *         description: Activities retrieved
@@ -207,20 +149,16 @@ router.put("/teritages/:ownerAddress", authenticate, handleUpdateTeritage);
  *             schema:
  *               $ref: '#/components/schemas/TeritageActivitiesResponse'
  */
-router.get("/teritages/:ownerAddress/activities", handleListActivities);
+router.get("/teritages/activities", authenticate, handleListActivities);
 
 /**
  * @openapi
- * /api/teritages/{ownerAddress}/checkins:
+ * /api/teritages/checkins:
  *   get:
  *     summary: List check-ins
+ *     security:
+ *       - bearerAuth: []
  *     tags: [Teritage]
- *     parameters:
- *       - in: path
- *         name: ownerAddress
- *         required: true
- *         schema:
- *           type: string
  *     responses:
  *       200:
  *         description: Check-ins retrieved
@@ -229,20 +167,16 @@ router.get("/teritages/:ownerAddress/activities", handleListActivities);
  *             schema:
  *               $ref: '#/components/schemas/TeritageCheckInsResponse'
  */
-router.get("/teritages/:ownerAddress/checkins", handleListCheckIns);
+router.get("/teritages/checkins", authenticate, handleListCheckIns);
 
 /**
  * @openapi
- * /api/teritages/{ownerAddress}/checkins/latest:
+ * /api/teritages/checkins/latest:
  *   get:
  *     summary: Get latest check-in
+ *     security:
+ *       - bearerAuth: []
  *     tags: [Teritage]
- *     parameters:
- *       - in: path
- *         name: ownerAddress
- *         required: true
- *         schema:
- *           type: string
  *     responses:
  *       200:
  *         description: Latest check-in returned
@@ -257,22 +191,16 @@ router.get("/teritages/:ownerAddress/checkins", handleListCheckIns);
  *             schema:
  *               $ref: '#/components/schemas/ApiMessageResponse'
  */
-router.get("/teritages/:ownerAddress/checkins/latest", handleGetLatestCheckIn);
+router.get("/teritages/checkins/latest", authenticate, handleGetLatestCheckIn);
 
 /**
  * @openapi
- * /api/teritages/{ownerAddress}/checkins:
+ * /api/teritages/checkins:
  *   post:
  *     summary: Record a check-in activity
  *     security:
  *       - bearerAuth: []
  *     tags: [Teritage]
- *     parameters:
- *       - in: path
- *         name: ownerAddress
- *         required: true
- *         schema:
- *           type: string
  *     requestBody:
  *       required: true
  *       content:
@@ -301,49 +229,6 @@ router.get("/teritages/:ownerAddress/checkins/latest", handleGetLatestCheckIn);
  *             schema:
  *               $ref: '#/components/schemas/ApiMessageResponse'
  */
-router.post("/teritages/:ownerAddress/checkins", authenticate, handleRecordCheckIn);
-
-/**
- * @openapi
- * /api/teritages/{ownerAddress}/claims:
- *   post:
- *     summary: Record an inheritance claim
- *     security:
- *       - bearerAuth: []
- *     tags: [Teritage]
- *     parameters:
- *       - in: path
- *         name: ownerAddress
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - initiatedBy
- *             properties:
- *               initiatedBy:
- *                 type: string
- *               note:
- *                 type: string
- *     responses:
- *       201:
- *         description: Claim recorded
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/TeritagePlanWithStatusResponse'
- *       400:
- *         description: Failed to record claim
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiMessageResponse'
- */
-router.post("/teritages/:ownerAddress/claims", authenticate, handleRecordClaim);
+router.post("/teritages/checkins", authenticate, handleRecordCheckIn);
 
 export default router;

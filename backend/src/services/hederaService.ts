@@ -2,6 +2,15 @@ import axios from "axios";
 
 import { env } from "../config/env.js";
 import { ApiError, NotFoundError } from "../utils/errors.js";
+import { logger } from "../utils/logger.js";
+
+interface PriceCache {
+  value: number;
+  timestamp: number;
+}
+
+const HBAR_PRICE_CACHE_TTL = 60 * 1000; // 1 minute
+let hbarPriceCache: PriceCache | null = null;
 
 export interface HederaTokenBalance {
   tokenId: string;
@@ -25,6 +34,7 @@ export async function fetchHederaTokenBalances(accountId: string): Promise<Heder
   const accountIdToQuery = accountInfo.account as string;
 
   const tokens: HederaTokenBalance[] = [];
+  const hbarPriceUsd = await getHbarUsdPrice();
 
   try {
     const { data: tokenData } = await axios.get(`${env.hederaApiBaseUrl}/accounts/${accountIdToQuery}/tokens`, {
@@ -79,7 +89,7 @@ export async function fetchHederaTokenBalances(accountId: string): Promise<Heder
     name: "Hedera",
     decimals: 8,
     balance: Number(accountInfo.balance?.balance ?? 0) / hbarDivisor,
-    priceUsd: 0,
+    priceUsd: hbarPriceUsd,
     change24hPercent: 0
   });
 
@@ -109,5 +119,27 @@ async function fetchAccount(accountId: string) {
       throw new ApiError(502, `Failed to fetch Hedera account for ${accountId}: ${error.message}`);
     }
     throw error;
+  }
+}
+
+async function getHbarUsdPrice(): Promise<number> {
+  if (hbarPriceCache && Date.now() - hbarPriceCache.timestamp < HBAR_PRICE_CACHE_TTL) {
+    return hbarPriceCache.value;
+  }
+
+  try {
+    const { data } = await axios.get("https://api.coingecko.com/api/v3/simple/price", {
+      params: { ids: "hedera-hashgraph", vs_currencies: "usd" }
+    });
+    const price = Number(data?.["hedera-hashgraph"]?.usd ?? 0);
+    if (Number.isNaN(price)) {
+      throw new Error("Invalid price response");
+    }
+    hbarPriceCache = { value: price, timestamp: Date.now() };
+    return price;
+  } catch (error) {
+    logger.warn("Failed to fetch HBAR price", error);
+    const fallback = hbarPriceCache?.value ?? 0;
+    return fallback;
   }
 }

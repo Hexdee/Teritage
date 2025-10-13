@@ -5,6 +5,7 @@ import { VerificationCodeModel } from '../models/VerificationCode.js';
 import { generateNumericCode } from '../utils/code.js';
 import { sendEmail } from '../utils/email.js';
 import { signAccessToken } from '../utils/jwt.js';
+import { logger } from '../utils/logger.js';
 import {
   compareCode,
   comparePassword,
@@ -36,7 +37,7 @@ export async function requestVerificationCode(
   const verificationToken = nanoid();
   const expiresAt = new Date(Date.now() + CODE_EXPIRY_MINUTES * 60 * 1000);
 
-  console.log({ codeHash, verificationToken, expiresAt });
+  logger.debug('Generated verification code', { codeHash, verificationToken, expiresAt });
 
   await VerificationCodeModel.findOneAndUpdate(
     { email: email.toLowerCase(), purpose },
@@ -44,8 +45,8 @@ export async function requestVerificationCode(
     { upsert: true, new: true }
   );
 
-  console.log(`Verification code for ${email}: ${code}`);
-  console.log('Sending email...');
+  logger.info(`Verification code generated for ${email}`);
+  logger.debug('Dispatching verification email');
 
   await sendEmail({
     to: email,
@@ -53,7 +54,7 @@ export async function requestVerificationCode(
     html: `<p>Your verification code is <strong>${code}</strong>. It expires in ${CODE_EXPIRY_MINUTES} minutes.</p>`,
   });
 
-  console.log('Email sent');
+  logger.info('Verification email sent');
 }
 
 export async function verifyCode(

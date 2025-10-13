@@ -7,15 +7,15 @@ const walletRouter = Router();
 
 /**
  * @openapi
- * /api/wallets/tokens:
+ * /api/wallets/{ownerAddress}/tokens:
  *   get:
  *     summary: Fetch Hedera token balances for an account
  *     security:
  *       - bearerAuth: []
  *     tags: [Wallet]
  *     parameters:
- *       - in: query
- *         name: accountId
+ *       - in: path
+ *         name: ownerAddress
  *         required: true
  *         schema:
  *           type: string
@@ -33,7 +33,7 @@ const walletRouter = Router();
  *             schema:
  *               $ref: '#/components/schemas/ApiMessageResponse'
 */
-walletRouter.get("/wallets/tokens", authenticate, handleGetTokenBalances);
+walletRouter.get("/wallets/:ownerAddress/tokens", authenticate, handleGetTokenBalances);
 
 /**
  * @openapi
@@ -46,11 +46,6 @@ walletRouter.get("/wallets/tokens", authenticate, handleGetTokenBalances);
  *     parameters:
  *       - in: path
  *         name: ownerAddress
- *         required: true
- *         schema:
- *           type: string
- *       - in: query
- *         name: accountId
  *         required: true
  *         schema:
  *           type: string

@@ -1,6 +1,7 @@
 import { Contract, JsonRpcProvider, WebSocketProvider } from "ethers";
 
 import { env } from "../config/env.js";
+import { logger } from "../utils/logger.js";
 import { emitNotification } from "./notificationService.js";
 import { updateTeritagePlan } from "./teritageService.js";
 
@@ -15,8 +16,7 @@ const contractAbi = [
 
 export function startContractWatcher() {
   if (!env.contractAddress || !env.contractRpcUrl) {
-    // eslint-disable-next-line no-console
-    console.log("Contract watcher disabled: CONTRACT_ADDRESS or CONTRACT_RPC_URL not set");
+    logger.warn("Contract watcher disabled: CONTRACT_ADDRESS or CONTRACT_RPC_URL not set");
     return;
   }
 
@@ -34,8 +34,7 @@ export function startContractWatcher() {
       await updateTeritagePlan(owner, {});
       await emitNotification(owner.toLowerCase(), "contract:checkin", { owner });
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error("Failed to update plan from OwnerCheckedIn event", error);
+      logger.error("Failed to update plan from OwnerCheckedIn event", error);
     }
   });
 
@@ -44,8 +43,7 @@ export function startContractWatcher() {
       await updateTeritagePlan(owner, { notifyBeneficiary: true });
       await emitNotification(owner.toLowerCase(), "contract:claim", { owner });
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error("Failed to update plan from claim event", error);
+      logger.error("Failed to update plan from claim event", error);
     }
   });
 }

@@ -5,6 +5,7 @@ import { connectDatabase } from "./config/database.js";
 import { env } from "./config/env.js";
 import { startContractWatcher } from "./services/contractWatcher.js";
 import { initNotificationService } from "./services/notificationService.js";
+import { logger } from "./utils/logger.js";
 
 async function bootstrap(): Promise<void> {
   await connectDatabase();
@@ -14,13 +15,11 @@ async function bootstrap(): Promise<void> {
   startContractWatcher();
 
   server.listen(env.port, () => {
-    // eslint-disable-next-line no-console
-    console.log(`Teritage backend listening on port ${env.port}`);
+    logger.info(`Teritage backend listening on port ${env.port}`);
   });
 }
 
 bootstrap().catch((error) => {
-  // eslint-disable-next-line no-console
-  console.error("Failed to start backend server", error);
+  logger.error("Failed to start backend server", error);
   process.exit(1);
 });

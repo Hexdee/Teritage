@@ -3,12 +3,13 @@ import { z } from "zod";
 
 import { getWalletSummary, getWalletTokens } from "../services/walletService.js";
 import { ApiError } from "../utils/errors.js";
+import { logger } from "../utils/logger.js";
 
 export async function handleGetTokenBalances(req: Request, res: Response): Promise<void> {
   try {
-    const querySchema = z.object({ accountId: z.string().trim().min(1) });
-    const { accountId } = querySchema.parse(req.query);
-    const tokens = await getWalletTokens(accountId);
+    const paramsSchema = z.object({ ownerAddress: z.string().trim().min(1) });
+    const { ownerAddress } = paramsSchema.parse(req.params);
+    const tokens = await getWalletTokens(ownerAddress);
     res.json({ tokens });
   } catch (error) {
     handleControllerError("handleGetTokenBalances", error, res);
@@ -18,10 +19,8 @@ export async function handleGetTokenBalances(req: Request, res: Response): Promi
 export async function handleGetWalletSummary(req: Request, res: Response): Promise<void> {
   try {
     const paramsSchema = z.object({ ownerAddress: z.string().trim().min(1) });
-    const querySchema = z.object({ accountId: z.string().trim().min(1) });
     const { ownerAddress } = paramsSchema.parse(req.params);
-    const { accountId } = querySchema.parse(req.query);
-    const summary = await getWalletSummary(ownerAddress, accountId);
+    const summary = await getWalletSummary(ownerAddress);
     res.json({ summary });
   } catch (error) {
     handleControllerError("handleGetWalletSummary", error, res);
@@ -30,19 +29,16 @@ export async function handleGetWalletSummary(req: Request, res: Response): Promi
 
 function handleControllerError(context: string, err: unknown, res: Response) {
   if (err instanceof ApiError) {
-    // eslint-disable-next-line no-console
-    console.error(`[${context}]`, err);
+    logger.error(`[${context}] ${err.message}`, err);
     res.status(err.status).json({ message: err.message });
     return;
   }
 
   if (err instanceof Error) {
-    // eslint-disable-next-line no-console
-    console.error(`[${context}]`, err);
+    logger.error(`[${context}] ${err.message}`, err);
     res.status(500).json({ message: err.message });
   } else {
-    // eslint-disable-next-line no-console
-    console.error(`[${context}]`, err);
+    logger.error(`[${context}] Unexpected error`, err);
     res.status(500).json({ message: "Unexpected error" });
   }
 }
