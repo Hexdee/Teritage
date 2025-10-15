@@ -3,7 +3,6 @@ import { CircularProgress } from '@/components/ui/circular-progress';
 import DataTable from '@/components/ui/data-table';
 import { ArrowUp, Eye, EyeOff } from 'lucide-react';
 import { columns } from './columns';
-import { wallets } from './data';
 import { useState } from 'react';
 import { useApplications } from '@/context/dashboard-provider';
 import { DashboardSkeleton } from '@/components/ui/loading';
@@ -22,7 +21,7 @@ export default function Wallet() {
     throw new Error(walletError?.response?.data?.message || walletTokenError?.response?.data?.message || 'Error occured while trying to access the server');
   }
 
-  console.log(walletsTokenData);
+  console.log({ walletsData });
 
   return (
     <>

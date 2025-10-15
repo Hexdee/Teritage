@@ -52,3 +52,6 @@ export const getTokenSummaryApi = (ownerAddress: string): Promise<ApiResponse> =
 
 export const getWalletTokenApi = (ownerAddress: string): Promise<ApiResponse> =>
   client.get(`/wallets/tokens`, { params: { accountId: ownerAddress } }).then((response) => response.data);
+
+export const getActivities = (ownerAddress: string): Promise<ApiResponse> =>
+  client.get(`/teritages/${ownerAddress}/activities`).then((response) => response.data);

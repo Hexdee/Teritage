@@ -1,7 +1,7 @@
 'use client';
 
-import { getTokenSummaryApi, getUserTeritageApi, getWalletTokenApi } from '@/config/apis';
-import { TERITAGES_KEY, WALLETS_SUMMARY_KEY, WALLETS_TOKENS_KEY } from '@/config/key';
+import { getActivities, getTokenSummaryApi, getUserTeritageApi, getWalletTokenApi } from '@/config/apis';
+import { ACTIVITIES_KEY, TERITAGES_KEY, WALLETS_SUMMARY_KEY, WALLETS_TOKENS_KEY } from '@/config/key';
 import { ApiResponse, DashboardContextType } from '@/type';
 import { useQuery } from '@tanstack/react-query';
 import React, { createContext, useContext } from 'react';
@@ -21,7 +21,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     queryKey: [TERITAGES_KEY, isConnected],
     queryFn: () => getUserTeritageApi(address || ''),
     enabled: !!isConnected,
-    retry: 1,
+    retry: 3,
   });
 
   const {
@@ -48,7 +48,19 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     retry: 3,
   });
 
-  console.log({ walletError });
+  const {
+    data: activitiesData,
+    isLoading: isLoadingActivities,
+    isError: isActivitiesError,
+    error: activitiesError,
+  }: ApiResponse | any = useQuery<ApiResponse>({
+    queryKey: [ACTIVITIES_KEY, isConnected],
+    queryFn: () => getActivities(address || ''),
+    enabled: !!isConnected,
+    retry: 3,
+  });
+
+  console.log({ teritageData });
 
   return (
     <DashboardContext.Provider
@@ -67,6 +79,11 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         isLoadingWalletsToken,
         isWalletTokenError,
         walletTokenError,
+
+        activitiesData,
+        isLoadingActivities,
+        isActivitiesError,
+        activitiesError,
       }}
     >
       {children}

@@ -18,6 +18,7 @@ import FormGroup from '../ui/form-group';
 import InputAdornment from '../ui/input-adornment';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
+import { setCookie } from 'cookies-next';
 
 const FormSchema = z.object({
   email: z.string().email({
@@ -43,7 +44,9 @@ export function LoginForm() {
 
   const { mutate, isPending } = useMutation({
     mutationFn: userLogin,
-    onSuccess: () => {
+    onSuccess: async (response: any) => {
+      console.log(response);
+      await setCookie('teritage_token', response.token);
       toast.success('Login successfully');
       router.push(WALLET_URL);
     },

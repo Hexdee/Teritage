@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import Image from 'next/image';
 import { ReactNode } from 'react';
 import { CheckMarkGreen } from '@/components/icons';
+import { format, parseISO } from 'date-fns';
 
 const columns: {
   accessorKey: string;
@@ -18,9 +18,10 @@ const columns: {
     cell: ({ row }) => <TypeCell data={row.original} />,
   },
   {
-    accessorKey: 'date',
+    accessorKey: 'timestamp',
     header: 'Date',
-    key: 'date',
+    key: 'timestamp',
+    cell: ({ row }) => <p>{format(parseISO(row.original.timestamp), 'MMM d, yyyy : h:mm a')}</p>,
   },
   {
     accessorKey: 'status',

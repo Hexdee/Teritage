@@ -50,7 +50,7 @@
 
 :root {
   --radius: 0.625rem;
-  --background: hsla(0, 0%, 100%, 1);
+  --background: hsla(0, 0%, 5%, 1);
   --foreground: oklch(0 0 95 0.05);
   --card: hsla(0, 0%, 95%, 0.05);
   --card-foreground: oklch(0 0 95 0.05);

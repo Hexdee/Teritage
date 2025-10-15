@@ -188,4 +188,15 @@ export type DashboardContextType = {
   isLoadingWalletsToken: boolean;
   isWalletTokenError: boolean;
   walletTokenError: any;
+
+  activitiesData: {
+    id: string;
+    type: string;
+    description: string;
+    metadata: any;
+    timestamp: string;
+  }[];
+  isLoadingActivities: boolean;
+  isActivitiesError: boolean;
+  activitiesError: any;
 };
