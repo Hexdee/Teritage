@@ -19,8 +19,20 @@ export async function handleClearDatabase(req: Request, res: Response): Promise<
       return;
     }
 
-    await mongoose.connection.dropDatabase();
-    res.json({ message: "Database cleared successfully" });
+    const collections = mongoose.connection.collections;
+
+    await Promise.all(
+      Object.entries(collections).map(async ([name, collection]) => {
+        try {
+          await collection.deleteMany({});
+        } catch (collectionError) {
+          logger.error(`[handleClearDatabase] Failed to clear collection ${name}`, collectionError);
+          throw collectionError;
+        }
+      })
+    );
+
+    res.json({ message: "All collections cleared successfully" });
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ message: "Invalid request payload", errors: error.errors });
