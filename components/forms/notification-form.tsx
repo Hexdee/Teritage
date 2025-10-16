@@ -1,11 +1,14 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { getUserProfileApi, updateUserProfileApi } from '@/config/apis';
 
 const notificationSchema = z.object({
   allowNotifications: z.boolean().catch(false),
@@ -14,6 +17,7 @@ const notificationSchema = z.object({
 type NotificationFormValues = z.infer<typeof notificationSchema>;
 
 export default function NotificationForm() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useForm<NotificationFormValues>({
     resolver: zodResolver(notificationSchema),
     defaultValues: {
@@ -21,8 +25,36 @@ export default function NotificationForm() {
     },
   });
 
-  const onSubmit = (data: NotificationFormValues) => {
-    console.log('Submitted:', data);
+  useEffect(() => {
+    let isMounted = true;
+
+    getUserProfileApi()
+      .then((response) => {
+        if (!isMounted) return;
+        form.reset({ allowNotifications: response.user.allowNotifications });
+      })
+      .catch(() => {
+        toast.error('Failed to load notification preferences');
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [form]);
+
+  const onSubmit = async (data: NotificationFormValues) => {
+    try {
+      setIsSubmitting(true);
+      await updateUserProfileApi({ allowNotifications: data.allowNotifications });
+      toast.success('Notification preferences updated');
+    } catch (error) {
+      const message =
+        (error as any)?.response?.data?.message ??
+        (error instanceof Error ? error.message : 'Failed to update notification preferences');
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -48,7 +80,7 @@ export default function NotificationForm() {
           />
         </div>
         <div className="flex justify-end">
-          <Button type="submit" className="w-fit" size="sm">
+          <Button type="submit" className="w-fit" size="sm" disabled={isSubmitting}>
             Save Changes
           </Button>
         </div>

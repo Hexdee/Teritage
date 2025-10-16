@@ -13,6 +13,8 @@ export default function Security() {
   const [openPinChange, setOpenPinChange] = useState<boolean>(false);
   const [showStage2, setShowStage2] = useState<boolean>(false);
   const [count, setCount] = useState(0);
+  const [verifiedPin, setVerifiedPin] = useState<string | null>(null);
+  const [hasExistingPin, setHasExistingPin] = useState<boolean>(false);
 
   return (
     <div className="space-y-8">
@@ -45,7 +47,18 @@ export default function Security() {
           </SheetContent>
         </Sheet>
 
-        <Sheet open={openPinChange} onOpenChange={setOpenPinChange}>
+        <Sheet
+          open={openPinChange}
+          onOpenChange={(value) => {
+            setOpenPinChange(value);
+            if (!value) {
+              setShowStage2(false);
+              setCount(0);
+              setVerifiedPin(null);
+              setHasExistingPin(false);
+            }
+          }}
+        >
           <SheetTrigger asChild>
             <div className="flex justify-between w-full items-center cursor-pointer" role="button">
               <div className="flex items-center space-x-2">
@@ -63,7 +76,13 @@ export default function Security() {
                   className="cursor-pointer"
                   aria-label="navigate backward"
                   onClick={() => {
-                    count === 0 ? setOpenPinChange(false) : setShowStage2(false);
+                    if (count === 0) {
+                      setOpenPinChange(false);
+                      setVerifiedPin(null);
+                      setHasExistingPin(false);
+                    } else {
+                      setShowStage2(false);
+                    }
                     setCount(0);
                   }}
                 />
@@ -73,7 +92,30 @@ export default function Security() {
               <Separator />
             </SheetHeader>
 
-            <div className="px-4">{showStage2 ? <ChangePinForm2 /> : <ChangePinForm setCount={setCount} setShowStage2={setShowStage2} />}</div>
+            <div className="px-4">
+              {showStage2 && verifiedPin !== null ? (
+                <ChangePinForm2
+                  currentPin={verifiedPin}
+                  hasExistingPin={hasExistingPin}
+                  onCompleted={() => {
+                    setOpenPinChange(false);
+                    setShowStage2(false);
+                    setCount(0);
+                    setVerifiedPin(null);
+                    setHasExistingPin(false);
+                  }}
+                />
+              ) : (
+                <ChangePinForm
+                  setCount={setCount}
+                  setShowStage2={setShowStage2}
+                  onVerified={(pin, existing) => {
+                    setVerifiedPin(existing ? pin : null);
+                    setHasExistingPin(existing);
+                  }}
+                />
+              )}
+            </div>
           </SheetContent>
         </Sheet>
       </div>

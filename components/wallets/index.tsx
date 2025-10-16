@@ -1,4 +1,5 @@
 import { ReactNode, useState } from 'react';
+import type { ISelectedWallet } from '@/type';
 import { SelectWallet } from './select-wallet';
 import SelectNewWallet, { ConfirmWalletSelection } from './select-new-wallet';
 import { SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -17,8 +18,16 @@ type IAddWalletContent = {
 
 export default function AddWalletContent({ setCurrentStage, currentStage }: IAddWalletContent) {
   const [selectedWallet, setSelectedWallet] = useState<ISelectedWallet | null>(null);
+  const [usernameError, setUsernameError] = useState<string | null>(null);
+  const [isUsernameLoading, setIsUsernameLoading] = useState(false);
 
   const showHeader = ![4, 5].includes(currentStage);
+
+  const handleUsernameNext = (nextStage: number) => (values: { username: string }) => {
+    // placeholder for username submission
+    setUsernameError(null);
+    setCurrentStage(nextStage);
+  };
 
   const EachTitle: Record<number, string> = {
     6: 'Wallet Settings',
@@ -46,11 +55,25 @@ export default function AddWalletContent({ setCurrentStage, currentStage }: IAdd
         handleNext={() => setCurrentStage(3)}
       />
     ),
-    3: <CreateUsernameForm handleNext={() => setCurrentStage(4)} />,
+    3: (
+      <CreateUsernameForm
+        handleNext={handleUsernameNext(4)}
+        errorMessage={usernameError}
+        setErrorMessage={setUsernameError}
+        isLoading={isUsernameLoading}
+      />
+    ),
     4: <WalletSuccess handleNext={() => setCurrentStage(5)} />,
     5: <Introduction handleNext={() => setCurrentStage(6)} className="mt-2" />,
     6: <WalletSettings setCurrentStage={setCurrentStage} />,
-    7: <CreateUsernameForm handleNext={() => setCurrentStage(6)} />,
+    7: (
+      <CreateUsernameForm
+        handleNext={handleUsernameNext(6)}
+        errorMessage={usernameError}
+        setErrorMessage={setUsernameError}
+        isLoading={isUsernameLoading}
+      />
+    ),
     8: <BeneficiaryInfoForm handleNext={() => setCurrentStage(6)} />,
   };
 

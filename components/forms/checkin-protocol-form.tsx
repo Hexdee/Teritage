@@ -10,9 +10,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '../ui/input';
 import { Trash } from 'lucide-react';
+import { getTeritagePlanApi } from '@/config/apis';
+import { toast } from 'sonner';
+import { useTeritageContract } from '@/lib/blockchain/useTeritageContract';
 
 const formSchema = z.object({
-  interval: z.string().min(2, { message: 'Interval is required' }),
+  interval: z.string().min(1, { message: 'Interval is required' }),
   socialLinks: z
     .array(
       z.object({
@@ -24,7 +27,17 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+const DEFAULT_OPTIONS = [
+  { value: String(24 * 60 * 60), label: 'Every day' },
+  { value: String(7 * 24 * 60 * 60), label: 'Every week' },
+  { value: String(30 * 24 * 60 * 60), label: 'Every month (approx.)' },
+];
+
 export default function CheckInProtocolForm() {
+  const [intervalOptions, setIntervalOptions] = React.useState(DEFAULT_OPTIONS);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const { updateCheckInInterval } = useTeritageContract();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -38,8 +51,65 @@ export default function CheckInProtocolForm() {
     name: 'socialLinks',
   });
 
-  function onSubmit(values: FormValues) {
-    console.log(values);
+  React.useEffect(() => {
+    let isMounted = true;
+
+    getTeritagePlanApi()
+      .then((response) => {
+        if (!isMounted) return;
+        const { plan } = response as any;
+        if (!plan) return;
+
+        const intervalValue = String(plan.checkInIntervalSeconds ?? 24 * 60 * 60);
+        if (!DEFAULT_OPTIONS.some((option) => option.value === intervalValue)) {
+          setIntervalOptions((options) => [
+            ...options,
+            { value: intervalValue, label: `Custom (${plan.checkInIntervalSeconds} seconds)` },
+          ]);
+        }
+
+        const socialLinks = Array.isArray(plan.socialLinks) && plan.socialLinks.length
+          ? plan.socialLinks.map((url: string) => ({ url }))
+          : [{ url: '' }];
+
+        form.reset({
+          interval: intervalValue,
+          socialLinks,
+        });
+      })
+      .catch(() => {
+        toast.error('Failed to load current check-in preferences');
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [form]);
+
+  async function onSubmit(values: FormValues) {
+    try {
+      setIsSubmitting(true);
+      const sanitizedLinks = values.socialLinks.map((link) => link.url.trim()).filter((url) => url.length > 0);
+
+      const intervalSeconds = Number(values.interval);
+
+      await updateCheckInInterval({
+        newIntervalSeconds: intervalSeconds,
+        backendPayload: {
+          checkInIntervalSeconds: intervalSeconds,
+          socialLinks: sanitizedLinks,
+        },
+      });
+
+      toast.success('Check-in protocol updated');
+    } catch (error) {
+      const message =
+        (error as any)?.response?.data?.message ??
+        (error instanceof Error ? error.message : 'Failed to update check-in protocol');
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -51,16 +121,18 @@ export default function CheckInProtocolForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>How often do you want to be checked-in?</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select your check-in interval" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
+                  {intervalOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 
@@ -98,7 +170,7 @@ export default function CheckInProtocolForm() {
         </Button>
 
         <div className="flex justify-end">
-          <Button type="submit" className="w-fit" size="sm">
+          <Button type="submit" className="w-fit" size="sm" disabled={isSubmitting}>
             Save changes
           </Button>
         </div>

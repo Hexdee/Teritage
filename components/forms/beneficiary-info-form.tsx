@@ -36,10 +36,10 @@ const formSchema = z
   })
   .superRefine((values, ctx) => {
     const total = values.beneficiaries.reduce((acc, item) => acc + item.sharePercentage, 0);
-    if (Math.round(total) !== 100) {
+    if (total > 100) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Total allocation must equal 100%',
+        message: 'Total allocation cannot exceed 100%',
         path: ['beneficiaries'],
       });
     }
@@ -89,8 +89,8 @@ export default function BeneficiaryInfoForm({ handleNext }: INextPage) {
 
   const totalShare = form.watch('beneficiaries').reduce((acc, item) => acc + (Number(item.sharePercentage) || 0), 0);
 
-  function onSubmit(values: any) {
-    const formatted = values.beneficiaries.map((beneficiary: any) => ({
+  function onSubmit(values: FormValues) {
+    const formatted = values.beneficiaries.map((beneficiary) => ({
       firstName: beneficiary.firstName.trim(),
       lastName: beneficiary.lastName.trim(),
       email: beneficiary.email.trim(),
@@ -238,9 +238,17 @@ export default function BeneficiaryInfoForm({ handleNext }: INextPage) {
           </div>
         ))}
 
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>Total allocation:</span>
-          <span className="font-medium text-inverse">{totalShare}%</span>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>Total allocation:</span>
+            <span className="font-medium text-inverse">{totalShare}%</span>
+          </div>
+          {totalShare < 100 && (
+            <p className="text-xs text-muted-foreground">Unallocated percentage: {Math.max(0, 100 - totalShare)}%</p>
+          )}
+          {form.formState.errors.beneficiaries?.message && (
+            <p className="text-sm text-destructive">{form.formState.errors.beneficiaries.message}</p>
+          )}
         </div>
 
         <Button

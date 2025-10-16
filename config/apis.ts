@@ -1,5 +1,19 @@
 import client from '@/lib/axios-instance';
-import { ApiResponse, CreateTeritagePlanRequest, UpdateTeritagePlanRequest } from '@/type';
+import {
+  ApiResponse,
+  ChangePasswordRequest,
+  ChangePinRequest,
+  CreatePinRequest,
+  CreateTeritagePlanRequest,
+  PinVerificationResponse,
+  UpdateTeritagePlanRequest,
+  UpdateUserProfileRequest,
+  UpdateWalletAddressesRequest,
+  UserProfile,
+  VerifyPinRequest,
+  WalletSummaryResponse,
+  WalletTokensResponse,
+} from '@/type';
 
 export const userSignUp = (payload: { email: string }): Promise<ApiResponse> =>
   client.post('/auth/signup/request-code', payload).then((response) => response.data);
@@ -19,36 +33,48 @@ export const userSetUsername = (payload: { username: string }): Promise<ApiRespo
 export const createTeritagePlanApi = (payload: CreateTeritagePlanRequest): Promise<ApiResponse> =>
   client.post('/teritages', payload).then((response) => response.data);
 
-export const getTeritagePlanApi = (ownerAddress: string): Promise<ApiResponse> => client.get(`/teritages/${ownerAddress}`).then((response) => response.data);
+export const getTeritagePlanApi = (): Promise<ApiResponse> => client.get('/teritages').then((response) => response.data);
 
-export const updateTeritagePlanApi = (ownerAddress: string, payload: UpdateTeritagePlanRequest): Promise<ApiResponse> =>
-  client.put(`/teritages/${ownerAddress}`, payload).then((response) => response.data);
+export const updateTeritagePlanApi = (payload: UpdateTeritagePlanRequest): Promise<ApiResponse> =>
+  client.patch('/teritages', payload).then((response) => response.data);
 
-export const recordCheckInApi = (ownerAddress: string, payload: { triggeredBy?: string; note?: string; timestamp?: string } = {}): Promise<ApiResponse> =>
-  client.post(`/teritages/${ownerAddress}/checkins`, payload).then((response) => response.data);
+export const recordCheckInApi = (payload: { triggeredBy?: string; note?: string; timestamp?: string } = {}): Promise<ApiResponse> =>
+  client.post(`/teritages/checkins`, payload).then((response) => response.data);
 
-export const recordClaimApi = (ownerAddress: string, payload: { initiatedBy: string; note?: string }): Promise<ApiResponse> =>
-  client.post(`/teritages/${ownerAddress}/claims`, payload).then((response) => response.data);
+export const listTeritageActivitiesApi = (): Promise<ApiResponse> =>
+  client.get(`/teritages/activities`).then((response) => response.data);
 
-export const listTeritageActivitiesApi = (ownerAddress: string): Promise<ApiResponse> =>
-  client.get(`/teritages/${ownerAddress}/activities`).then((response) => response.data);
+export const listTeritageCheckInsApi = (): Promise<ApiResponse> =>
+  client.get(`/teritages/checkins`).then((response) => response.data);
 
-export const listTeritageCheckInsApi = (ownerAddress: string): Promise<ApiResponse> =>
-  client.get(`/teritages/${ownerAddress}/checkins`).then((response) => response.data);
+export const getLatestCheckInApi = (): Promise<ApiResponse> =>
+  client.get(`/teritages/checkins/latest`).then((response) => response.data);
 
-export const getLatestCheckInApi = (ownerAddress: string): Promise<ApiResponse> =>
-  client.get(`/teritages/${ownerAddress}/checkins/latest`).then((response) => response.data);
+export const getWalletTokensApi = (ownerAddress: string): Promise<WalletTokensResponse> =>
+  client.get(`/wallets/${ownerAddress}/tokens`).then((response) => response.data);
 
-export const getWalletTokensApi = (accountId: string): Promise<ApiResponse> =>
-  client.get('/wallets/tokens', { params: { accountId } }).then((response) => response.data);
+export const getWalletSummaryApi = (ownerAddress: string): Promise<WalletSummaryResponse> =>
+  client.get(`/wallets/${ownerAddress}/summary`).then((response) => response.data);
 
-export const getWalletSummaryApi = (ownerAddress: string, accountId: string): Promise<ApiResponse> =>
-  client.get(`/wallets/${ownerAddress}/summary`, { params: { accountId } }).then((response) => response.data);
+export const getUserTeritageApi = (): Promise<ApiResponse> => getTeritagePlanApi();
 
-export const getUserTeritageApi = (ownerAddress: string): Promise<ApiResponse> => client.get(`/teritages/${ownerAddress}`).then((response) => response.data);
+export const getUserProfileApi = (): Promise<{ user: UserProfile }> =>
+  client.get('/user/profile').then((response) => response.data);
 
-export const getTokenSummaryApi = (ownerAddress: string): Promise<ApiResponse> =>
-  client.get(`/wallets/${ownerAddress}/summary`, { params: { accountId: ownerAddress } }).then((response) => response.data);
+export const updateUserProfileApi = (payload: UpdateUserProfileRequest): Promise<{ user: UserProfile }> =>
+  client.patch('/user/profile', payload).then((response) => response.data);
 
-export const getWalletTokenApi = (ownerAddress: string): Promise<ApiResponse> =>
-  client.get(`/wallets/tokens`, { params: { accountId: ownerAddress } }).then((response) => response.data);
+export const changePasswordApi = (payload: ChangePasswordRequest): Promise<{ message: string }> =>
+  client.patch('/user/password', payload).then((response) => response.data);
+
+export const verifyPinApi = (payload: VerifyPinRequest): Promise<PinVerificationResponse> =>
+  client.post('/user/pin/verify', payload).then((response) => response.data);
+
+export const changePinApi = (payload: ChangePinRequest): Promise<{ message: string }> =>
+  client.patch('/user/pin', payload).then((response) => response.data);
+
+export const updateWalletAddressesApi = (payload: UpdateWalletAddressesRequest): Promise<{ user: UserProfile }> =>
+  client.patch('/user/wallets', payload).then((response) => response.data);
+
+export const createPinApi = (payload: CreatePinRequest): Promise<{ message: string }> =>
+  client.post('/user/pin', payload).then((response) => response.data);

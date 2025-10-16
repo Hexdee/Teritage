@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import type { ISelectWalletNextPage } from '@/type';
 import { PencilIcon2 } from '../icons';
 
 export const SelectWallet = ({ handleNext, handleViewWallet }: ISelectWalletNextPage) => {

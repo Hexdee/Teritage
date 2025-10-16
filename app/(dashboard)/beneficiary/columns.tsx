@@ -1,17 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { Button } from '@/components/ui/button';
-import Image from 'next/image';
 import { ReactNode, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
-import CurrencyText from '@/components/ui/currency-text';
-import { ArrowUp, EllipsisVertical } from 'lucide-react';
+import { EllipsisVertical } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AllocationBreakdown from '@/components/beneficiary/allocation-breakdown';
 import ManageAllocation from '@/components/beneficiary/manage-allocation';
 import { ArrowLeft } from '@/components/icons';
+import { useApplications } from '@/context/dashboard-provider';
+
+export type BeneficiaryRow = {
+  name: string;
+  wallet_address: string;
+  full_wallet_address: string;
+  sharePercentage: number;
+  notifyBeneficiary?: boolean;
+  email?: string;
+  phone?: string;
+};
 
 const columns: {
   accessorKey: string;
@@ -31,22 +39,34 @@ const columns: {
     key: 'wallet_address',
   },
   {
-    accessorKey: 'assigned_allocation',
+    accessorKey: 'sharePercentage',
     header: 'Assigned Allocation',
-    key: 'assigned_allocation',
+    key: 'sharePercentage',
+    cell: ({ row }) => <p>{row.original.sharePercentage}%</p>,
   },
   {
     accessorKey: 'action',
     header: '',
     key: 'action',
-    cell: () => <ActionCell />,
+    cell: ({ row }) => <ActionCell data={row.original} />,
   },
 ];
 
 export { columns };
 
-export const ActionCell = () => {
+interface ActionCellProps {
+  data: BeneficiaryRow;
+}
+
+export const ActionCell = ({ data }: ActionCellProps) => {
   const [currentStage, setCurrentStage] = useState(1);
+  const { walletsData } = useApplications();
+
+  const totalValue = walletsData?.summary?.totalPortfolioValueUsd ?? 0;
+  const assignedPercentage = data.sharePercentage;
+  const allocatedValue = Number(((totalValue * assignedPercentage) / 100).toFixed(2));
+  const unallocatedPercentage = 100 - assignedPercentage;
+  const unallocatedValue = Number(((totalValue * unallocatedPercentage) / 100).toFixed(2));
 
   const EachTitle: Record<number, string> = {
     1: 'Allocation Breakdown',
@@ -54,8 +74,17 @@ export const ActionCell = () => {
   };
 
   const EachStage: Record<number, ReactNode> = {
-    1: <AllocationBreakdown handleNext={() => setCurrentStage(2)} />,
-    2: <ManageAllocation />,
+    1: (
+      <AllocationBreakdown
+        handleNext={() => setCurrentStage(2)}
+        beneficiary={data}
+        allocatedValue={allocatedValue}
+        unallocatedValue={unallocatedValue}
+        assignedPercentage={assignedPercentage}
+        unallocatedPercentage={unallocatedPercentage}
+      />
+    ),
+    2: <ManageAllocation beneficiary={data} totalValue={totalValue} />,
   };
 
   return (
@@ -82,18 +111,12 @@ export const ActionCell = () => {
   );
 };
 
-interface IData {
-  data: {
-    name: string;
-  };
-}
-
-export const NameCell = ({ data }: IData) => {
+export const NameCell = ({ data }: { data: BeneficiaryRow }) => {
   return (
     <div className="space-x-2 flex items-center">
       <Avatar>
-        <AvatarImage src="https://github.com/shadcn.png" />
-        <AvatarFallback>CN</AvatarFallback>
+        <AvatarImage src={`https://api.dicebear.com/7.x/identicon/svg?seed=${data.full_wallet_address}`} />
+        <AvatarFallback>{data.name.slice(0, 2).toUpperCase()}</AvatarFallback>
       </Avatar>
 
       <p className="text-inverse">{data.name}</p>

@@ -5,11 +5,10 @@ import { useWriteContract, useReadContract } from 'wagmi';
 import { waitForTransactionReceipt } from 'viem/actions';
 import { createPublicClient, http, type Address } from 'viem';
 
-import { wagmiConfig } from '@/config/rainbowkit';
 import { TERITAGE_INHERITANCE_ABI } from '@/lib/abi/teritageInheritance';
-import { TERITAGE_CHAIN_ID, TERITAGE_CONTRACT_ADDRESS, TERITAGE_TOKEN_TYPE_MAP, TeritageTokenType } from '@/lib/blockchain/constants';
+import { TERITAGE_CHAIN_ID, TERITAGE_CONTRACT_ADDRESS, TERITAGE_TOKEN_TYPE_MAP } from '@/lib/blockchain/constants';
 import type { CreateTeritagePlanRequest, UpdateTeritagePlanRequest, TeritageTokenConfig } from '@/type';
-import { createTeritagePlanApi, updateTeritagePlanApi, recordCheckInApi, recordClaimApi } from '@/config/apis';
+import { createTeritagePlanApi, updateTeritagePlanApi, recordCheckInApi } from '@/config/apis';
 import { hederaTestnet } from 'wagmi/chains';
 
 interface ContractTokenInput extends TeritageTokenConfig {
@@ -27,29 +26,24 @@ interface CreatePlanArgs {
 interface UpdateInheritorsArgs {
   inheritors: Address[];
   shares: number[];
-  ownerAddress?: string;
   backendPayload?: UpdateTeritagePlanRequest;
 }
 
 interface UpdateTokensArgs {
   tokens: ContractTokenInput[];
-  ownerAddress?: string;
   backendPayload?: UpdateTeritagePlanRequest;
 }
 
 interface UpdateIntervalArgs {
   newIntervalSeconds: number;
-  ownerAddress?: string;
   backendPayload?: UpdateTeritagePlanRequest;
 }
 
 interface ClaimArgs {
   ownerAddress: Address;
-  backendPayload?: { initiatedBy: string; note?: string };
 }
 
 interface CheckInArgs {
-  ownerAddress?: string;
   backendPayload?: { triggeredBy?: string; note?: string; timestamp?: string };
 }
 
@@ -104,53 +98,53 @@ export function useTeritageContract() {
   );
 
   const updateInheritors = useCallback(
-    async ({ inheritors, shares, ownerAddress, backendPayload }: UpdateInheritorsArgs) => {
+    async ({ inheritors, shares, backendPayload }: UpdateInheritorsArgs) => {
       await execute({
         functionName: 'updateInheritors',
         args: [inheritors, toShareValues(shares)],
       });
 
-      if (backendPayload && ownerAddress) {
-        await updateTeritagePlanApi(ownerAddress, backendPayload);
+      if (backendPayload) {
+        await updateTeritagePlanApi(backendPayload);
       }
     },
     [execute]
   );
 
   const updateTokens = useCallback(
-    async ({ tokens, ownerAddress, backendPayload }: UpdateTokensArgs) => {
+    async ({ tokens, backendPayload }: UpdateTokensArgs) => {
       await execute({
         functionName: 'updateTokens',
         args: [tokens.map((token) => token.address), toTokenTypes(tokens)],
       });
 
-      if (backendPayload && ownerAddress) {
-        await updateTeritagePlanApi(ownerAddress, backendPayload);
+      if (backendPayload) {
+        await updateTeritagePlanApi(backendPayload);
       }
     },
     [execute]
   );
 
   const updateCheckInInterval = useCallback(
-    async ({ newIntervalSeconds, ownerAddress, backendPayload }: UpdateIntervalArgs) => {
+    async ({ newIntervalSeconds, backendPayload }: UpdateIntervalArgs) => {
       await execute({
         functionName: 'updateCheckInInterval',
         args: [toInterval(newIntervalSeconds)],
       });
 
-      if (backendPayload && ownerAddress) {
-        await updateTeritagePlanApi(ownerAddress, backendPayload);
+      if (backendPayload) {
+        await updateTeritagePlanApi(backendPayload);
       }
     },
     [execute]
   );
 
   const checkIn = useCallback(
-    async ({ ownerAddress, backendPayload }: CheckInArgs = {}) => {
+    async ({ backendPayload }: CheckInArgs = {}) => {
       await execute({ functionName: 'checkIn' });
 
-      if (backendPayload && ownerAddress) {
-        await recordCheckInApi(ownerAddress, backendPayload);
+      if (backendPayload) {
+        await recordCheckInApi(backendPayload);
       }
     },
     [execute]
@@ -161,12 +155,8 @@ export function useTeritageContract() {
   }, [execute]);
 
   const claimInheritance = useCallback(
-    async ({ ownerAddress, backendPayload }: ClaimArgs) => {
+    async ({ ownerAddress }: ClaimArgs) => {
       await execute({ functionName: 'claimInheritance', args: [ownerAddress] });
-
-      if (backendPayload) {
-        await recordClaimApi(ownerAddress, backendPayload);
-      }
     },
     [execute]
   );

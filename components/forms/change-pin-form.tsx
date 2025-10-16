@@ -7,28 +7,34 @@ import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useState } from 'react';
+import { verifyPinApi, changePinApi, createPinApi } from '@/config/apis';
+import { toast } from 'sonner';
 
 const FormSchema = z.object({
-  pin: z.string().min(4, {
+  pin: z.string().regex(/^[0-9]{4}$/, {
     message: 'Your one-time password must be 4 characters.',
   }),
 });
 
-const FormSchema2 = z.object({
-  newPin: z.string().min(4, {
-    message: 'Your one-time password must be 4 characters.',
-  }),
-  confirmPin: z.string().min(4, {
-    message: 'Your one-time password must be 4 characters.',
-  }),
-});
+const FormSchema2 = z
+  .object({
+    newPin: z.string().regex(/^[0-9]{4}$/, { message: 'PIN must be a 4-digit code.' }),
+    confirmPin: z.string().regex(/^[0-9]{4}$/, { message: 'PIN must be a 4-digit code.' }),
+  })
+  .refine((data) => data.newPin === data.confirmPin, {
+    message: 'PIN entries must match',
+    path: ['confirmPin'],
+  });
 
 interface IChangePinForm {
   setShowStage2: (arg: boolean) => void;
   setCount: (arg: number) => void;
+  onVerified: (pin: string, hasExistingPin: boolean) => void;
 }
 
-export function ChangePinForm({ setShowStage2, setCount }: IChangePinForm) {
+export function ChangePinForm({ setShowStage2, setCount, onVerified }: IChangePinForm) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -36,10 +42,27 @@ export function ChangePinForm({ setShowStage2, setCount }: IChangePinForm) {
     },
   });
 
-  function onSubmit(values: z.infer<typeof FormSchema>) {
-    console.log(values);
-    setCount(1);
-    setShowStage2(true);
+  async function onSubmit(values: z.infer<typeof FormSchema>) {
+    try {
+      setIsSubmitting(true);
+      const response = await verifyPinApi({ pin: values.pin });
+      if (!response.valid) {
+        form.setError('pin', { message: 'Invalid PIN' });
+        toast.error('Invalid PIN');
+        return;
+      }
+      toast.success('PIN verified');
+      onVerified(values.pin, response.hasPin);
+      setCount(1);
+      setShowStage2(true);
+    } catch (error) {
+      const message =
+        (error as any)?.response?.data?.message ?? (error instanceof Error ? error.message : 'Failed to verify PIN');
+      form.setError('pin', { message });
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -69,7 +92,7 @@ export function ChangePinForm({ setShowStage2, setCount }: IChangePinForm) {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
           Continue
         </Button>
       </form>
@@ -77,7 +100,14 @@ export function ChangePinForm({ setShowStage2, setCount }: IChangePinForm) {
   );
 }
 
-export function ChangePinForm2() {
+interface ChangePinForm2Props {
+  currentPin: string | null;
+  hasExistingPin: boolean;
+  onCompleted: () => void;
+}
+
+export function ChangePinForm2({ currentPin, hasExistingPin, onCompleted }: ChangePinForm2Props) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useForm<z.infer<typeof FormSchema2>>({
     resolver: zodResolver(FormSchema2),
     defaultValues: {
@@ -86,8 +116,29 @@ export function ChangePinForm2() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof FormSchema2>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof FormSchema2>) {
+    try {
+      setIsSubmitting(true);
+      if (hasExistingPin) {
+        if (!currentPin) {
+          throw new Error('Current PIN is required to update existing PIN');
+        }
+        await changePinApi({ currentPin, newPin: values.newPin });
+        toast.success('PIN updated successfully');
+      } else {
+        await createPinApi({ pin: values.newPin });
+        toast.success('PIN created successfully');
+      }
+      form.reset();
+      onCompleted();
+    } catch (error) {
+      const message =
+        (error as any)?.response?.data?.message ?? (error instanceof Error ? error.message : 'Failed to update PIN');
+      form.setError('newPin', { message });
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -139,7 +190,7 @@ export function ChangePinForm2() {
           )}
         />
 
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
           Continue
         </Button>
       </form>

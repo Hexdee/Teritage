@@ -12,6 +12,9 @@ import CurrencyText from '@/components/ui/currency-text';
 import { ArrowUp } from 'lucide-react';
 import { useAccount } from 'wagmi';
 
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(value);
+
 const columns: {
   accessorKey: string;
   header: string;
@@ -28,6 +31,7 @@ const columns: {
     accessorKey: 'priceUsd',
     header: 'Amount',
     key: 'priceUsd',
+    cell: ({ row }) => <p>{formatCurrency(row.original.priceUsd)}</p>,
   },
   {
     accessorKey: 'balance',
@@ -39,7 +43,11 @@ const columns: {
     accessorKey: 'change24hPercent',
     header: '24H Change',
     key: 'change24hPercent',
-    cell: ({ row }) => <p className={cn(row.original.increment ? 'text-success' : 'text-destructive')}>{row.original.change24hPercent}%</p>,
+    cell: ({ row }) => {
+      const change = Number(row.original.change24hPercent ?? 0);
+      const isPositive = change >= 0;
+      return <p className={cn(isPositive ? 'text-success' : 'text-destructive')}>{change.toFixed(2)}%</p>;
+    },
   },
   // {
   //   accessorKey: 'action',
@@ -122,9 +130,10 @@ interface IData {
 
 export const CoinCell = ({ data }: IData) => {
   const { address } = useAccount();
+  const seed = address ?? data.symbol ?? data.name;
   return (
     <div className="space-x-2 flex items-center">
-      <img src={`https://api.dicebear.com/7.x/identicon/svg?seed=${address}`} alt="logo" className="rounded-full h-4 w-4" />
+      <img src={`https://api.dicebear.com/7.x/identicon/svg?seed=${seed}`} alt="logo" className="rounded-full h-4 w-4" />
       <div className="space-y-1">
         <p className="text-inverse">{data.name}</p>
         <p className="text-muted-foreground">{data.symbol}</p>
