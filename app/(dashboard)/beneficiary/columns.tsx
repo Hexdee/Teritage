@@ -39,13 +39,13 @@ const columns: {
     accessorKey: 'action',
     header: '',
     key: 'action',
-    cell: () => <ActionCell />,
+    cell: ({ row }) => <ActionCell beneficiary={row.original} />,
   },
 ];
 
 export { columns };
 
-export const ActionCell = () => {
+export const ActionCell = ({ beneficiary }: any) => {
   const [currentStage, setCurrentStage] = useState(1);
 
   const EachTitle: Record<number, string> = {
@@ -55,7 +55,7 @@ export const ActionCell = () => {
 
   const EachStage: Record<number, ReactNode> = {
     1: <AllocationBreakdown handleNext={() => setCurrentStage(2)} />,
-    2: <ManageAllocation />,
+    2: <ManageAllocation beneficiary={beneficiary} totalValue={20} />,
   };
 
   return (

@@ -11,8 +11,8 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "lib": ["ES2021"],
-    "types": ["node"]
+    "types": ["node", "vitest"]
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["dist", "node_modules"]
+  "exclude": ["dist", "node_modules", "src/**/*.test.ts", "src/**/__tests__/**/*"]
 }

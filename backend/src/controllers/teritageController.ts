@@ -1,7 +1,9 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { z } from "zod";
 
+import { AuthenticatedRequest } from "../middleware/auth.js";
 import { ITeritagePlan } from "../models/TeritagePlan.js";
+import { IUser } from "../models/User.js";
 import {
   createTeritagePlan,
   getTeritagePlan,
@@ -9,8 +11,10 @@ import {
   listCheckIns,
   recordCheckIn,
   recordClaim,
-  updateTeritagePlan} from "../services/teritageService.js";
+  updateTeritagePlan,
+} from "../services/teritageService.js";
 import { ApiError } from "../utils/errors.js";
+import { logger } from "../utils/logger.js";
 
 const inheritorSchema = z.object({
   address: z.string().trim().min(1),
@@ -36,16 +40,8 @@ const tokenSchema = z
     }
   });
 
-const userSchema = z.object({
-  name: z.string().trim().min(1),
-  email: z.string().trim().email(),
-  phone: z.string().trim().optional(),
-  notes: z.string().trim().optional()
-});
-
 const createSchema = z.object({
   ownerAddress: z.string().trim().min(1),
-  user: userSchema,
   inheritors: z.array(inheritorSchema).min(1),
   tokens: z.array(tokenSchema).min(1),
   checkInIntervalSeconds: z.number().int().positive(),
@@ -54,7 +50,6 @@ const createSchema = z.object({
 });
 
 const updateSchema = z.object({
-  user: userSchema.partial().optional(),
   inheritors: z.array(inheritorSchema).min(1).optional(),
   tokens: z.array(tokenSchema).min(1).optional(),
   checkInIntervalSeconds: z.number().int().positive().optional(),
@@ -62,10 +57,15 @@ const updateSchema = z.object({
   notifyBeneficiary: z.boolean().optional()
 });
 
-export async function handleCreateTeritage(req: Request, res: Response): Promise<void> {
+export async function handleCreateTeritage(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
+    if (!req.userId) {
+      res.status(401).json({ message: "Authentication required" });
+      return;
+    }
+
     const payload = createSchema.parse(req.body);
-    const plan = await createTeritagePlan({
+    const plan = await createTeritagePlan(req.userId, {
       ...payload,
       tokens: payload.tokens.map((token) => ({
         type: token.type,
@@ -78,11 +78,15 @@ export async function handleCreateTeritage(req: Request, res: Response): Promise
   }
 }
 
-export async function handleUpdateTeritage(req: Request, res: Response): Promise<void> {
+export async function handleUpdateTeritage(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
+    if (!req.userId) {
+      res.status(401).json({ message: "Authentication required" });
+      return;
+    }
+
     const payload = updateSchema.parse(req.body);
-    const ownerAddress = z.string().trim().min(1).parse(req.params.ownerAddress);
-    const plan = await updateTeritagePlan(ownerAddress, {
+    const plan = await updateTeritagePlan(req.userId, {
       ...payload,
       tokens: payload.tokens
         ? payload.tokens.map((token) => ({
@@ -97,10 +101,14 @@ export async function handleUpdateTeritage(req: Request, res: Response): Promise
   }
 }
 
-export async function handleGetTeritage(req: Request, res: Response): Promise<void> {
+export async function handleGetTeritage(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const ownerAddress = z.string().trim().min(1).parse(req.params.ownerAddress);
-    const plan = await getTeritagePlan(ownerAddress);
+    if (!req.userId) {
+      res.status(401).json({ message: "Authentication required" });
+      return;
+    }
+
+    const plan = await getTeritagePlan(req.userId);
     if (!plan) {
       res.status(404).json({ message: "Teritage plan not found" });
       return;
@@ -112,30 +120,42 @@ export async function handleGetTeritage(req: Request, res: Response): Promise<vo
   }
 }
 
-export async function handleListActivities(req: Request, res: Response): Promise<void> {
+export async function handleListActivities(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const ownerAddress = z.string().trim().min(1).parse(req.params.ownerAddress);
-    const activities = await listActivities(ownerAddress);
+    if (!req.userId) {
+      res.status(401).json({ message: "Authentication required" });
+      return;
+    }
+
+    const activities = await listActivities(req.userId);
     res.json({ activities });
   } catch (error) {
     handleControllerError("handleListActivities", error, res);
   }
 }
 
-export async function handleListCheckIns(req: Request, res: Response): Promise<void> {
+export async function handleListCheckIns(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const ownerAddress = z.string().trim().min(1).parse(req.params.ownerAddress);
-    const checkIns = await listCheckIns(ownerAddress);
+    if (!req.userId) {
+      res.status(401).json({ message: "Authentication required" });
+      return;
+    }
+
+    const checkIns = await listCheckIns(req.userId);
     res.json({ checkIns });
   } catch (error) {
     handleControllerError("handleListCheckIns", error, res);
   }
 }
 
-export async function handleGetLatestCheckIn(req: Request, res: Response): Promise<void> {
+export async function handleGetLatestCheckIn(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const ownerAddress = z.string().trim().min(1).parse(req.params.ownerAddress);
-    const checkIns = await listCheckIns(ownerAddress);
+    if (!req.userId) {
+      res.status(401).json({ message: "Authentication required" });
+      return;
+    }
+
+    const checkIns = await listCheckIns(req.userId);
     if (!checkIns.length) {
       res.status(404).json({ message: "No check-ins recorded" });
       return;
@@ -146,9 +166,13 @@ export async function handleGetLatestCheckIn(req: Request, res: Response): Promi
   }
 }
 
-export async function handleRecordCheckIn(req: Request, res: Response): Promise<void> {
+export async function handleRecordCheckIn(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const ownerAddress = z.string().trim().min(1).parse(req.params.ownerAddress);
+    if (!req.userId) {
+      res.status(401).json({ message: "Authentication required" });
+      return;
+    }
+
     const payload = z
       .object({
         triggeredBy: z.string().trim().optional(),
@@ -156,7 +180,7 @@ export async function handleRecordCheckIn(req: Request, res: Response): Promise<
         timestamp: z.string().datetime().optional()
       })
       .parse(req.body ?? {});
-    const plan = await recordCheckIn(ownerAddress, payload);
+    const plan = await recordCheckIn(req.userId, payload);
     const status = deriveStatus(plan.checkInIntervalSeconds, plan.lastCheckInAt, plan.isClaimInitiated);
     res.status(201).json({ plan: serializePlan(plan), status });
   } catch (error) {
@@ -164,7 +188,7 @@ export async function handleRecordCheckIn(req: Request, res: Response): Promise<
   }
 }
 
-export async function handleRecordClaim(req: Request, res: Response): Promise<void> {
+export async function handleRecordClaim(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const ownerAddress = z.string().trim().min(1).parse(req.params.ownerAddress);
     const payload = z
@@ -195,24 +219,47 @@ function deriveStatus(interval: number, lastCheckInAt: Date, isClaimInitiated: b
 }
 
 function serializePlan(plan: ITeritagePlan) {
-  return plan.toObject({ versionKey: false });
+  const ownerCandidate = plan.ownerAccount as unknown;
+  const plain = plan.toObject<{ ownerAccount?: unknown }>({ versionKey: false });
+
+  const owner = isPopulatedUser(ownerCandidate) ? ownerCandidate : null;
+
+  return {
+    ...plain,
+    ownerAccount: owner?.id ?? plain.ownerAccount,
+    user: owner
+      ? {
+          name: owner.name ?? owner.username ?? owner.email,
+          email: owner.email,
+          phone: owner.phone ?? null,
+          notes: owner.notes ?? null,
+          allowNotifications: owner.allowNotifications
+        }
+      : null
+  };
+}
+
+function isPopulatedUser(value: unknown): value is IUser & { id: string } {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      "email" in value &&
+      typeof (value as Record<string, unknown>).email === "string"
+  );
 }
 
 function handleControllerError(context: string, err: unknown, res: Response) {
   if (err instanceof ApiError) {
-    // eslint-disable-next-line no-console
-    console.error(`[${context}]`, err);
+    logger.error(`[${context}] ${err.message}`, err);
     res.status(err.status).json({ message: err.message });
     return;
   }
 
   if (err instanceof Error) {
-    // eslint-disable-next-line no-console
-    console.error(`[${context}]`, err);
+    logger.error(`[${context}] ${err.message}`, err);
     res.status(500).json({ message: err.message });
   } else {
-    // eslint-disable-next-line no-console
-    console.error(`[${context}]`, err);
+    logger.error(`[${context}] Unexpected error`, err);
     res.status(500).json({ message: "Unexpected error" });
   }
 }

@@ -1,22 +1,16 @@
-import { ReactNode, useState } from 'react';
-import { SelectWallet } from './select-wallet';
-import SelectNewWallet, { ConfirmWalletSelection } from './select-new-wallet';
+import { ReactNode } from 'react';
 import { SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Separator } from '../ui/separator';
 import { ArrowLeft } from '../icons';
-import { CreateUsernameForm } from '../forms/create-username-form';
-import WalletSuccess from './wallet-success';
 import Introduction from '../beneficiary/introduction';
-import WalletSettings from './settings';
 import BeneficiaryInfoForm from '../forms/beneficiary-info-form';
+import TokenAllocation from '@/app/inheritance/token-allocation/page';
+import { useApplications } from '@/context/dashboard-provider';
+import SetUpInheritanceForm from '../forms/setup-inheritance-form';
+import WalletSuccessPage from '@/app/inheritance/success/page';
 
-type IAddWalletContent = {
-  setCurrentStage: (arg: number) => void;
-  currentStage: number;
-};
-
-export default function AddWalletContent({ setCurrentStage, currentStage }: IAddWalletContent) {
-  const [selectedWallet, setSelectedWallet] = useState<ISelectedWallet | null>(null);
+export default function AddWalletContent() {
+  const { setCurrentStage, currentStage, setOpenSheet } = useApplications();
 
   const showHeader = ![4, 5].includes(currentStage);
 
@@ -26,32 +20,47 @@ export default function AddWalletContent({ setCurrentStage, currentStage }: IAdd
     8: 'Beneficiary Information',
   };
 
+  // const EachStage: Record<number, ReactNode> = {
+  //   0: <SelectWallet handleNext={() => setCurrentStage(1)} handleViewWallet={() => setCurrentStage(6)} />,
+  //   1: (
+  //     <SelectNewWallet
+  //       handleNext={(wallet) => {
+  //         setSelectedWallet(wallet);
+  //         setCurrentStage(2);
+  //       }}
+  //     />
+  //   ),
+  //   2: (
+  //     <ConfirmWalletSelection
+  //       selectedWallet={selectedWallet}
+  //       handleBack={() => {
+  //         setSelectedWallet(null);
+  //         setCurrentStage(1);
+  //       }}
+  //       handleNext={() => setCurrentStage(3)}
+  //     />
+  //   ),
+  //   3: <CreateUsernameForm handleNext={() => setCurrentStage(4)} />,
+  //   4: <WalletSuccess handleNext={() => setCurrentStage(5)} />,
+  //   5: <Introduction handleNext={() => setCurrentStage(6)} className="mt-2" />,
+  //   6: <WalletSettings setCurrentStage={setCurrentStage} />,
+  //   7: <CreateUsernameForm handleNext={() => setCurrentStage(6)} />,
+  //   8: <BeneficiaryInfoForm handleNext={() => setCurrentStage(6)} />,
+  // };
+
   const EachStage: Record<number, ReactNode> = {
-    0: <SelectWallet handleNext={() => setCurrentStage(1)} handleViewWallet={() => setCurrentStage(6)} />,
-    1: (
-      <SelectNewWallet
-        handleNext={(wallet) => {
-          setSelectedWallet(wallet);
-          setCurrentStage(2);
+    0: <Introduction handleNext={() => setCurrentStage(1)} className="mt-2" />,
+    1: <SetUpInheritanceForm handleNext={() => setCurrentStage(2)} />,
+    2: <BeneficiaryInfoForm handleNext={() => setCurrentStage(3)} />,
+    3: <TokenAllocation handleNext={() => setCurrentStage(4)} />,
+    4: (
+      <WalletSuccessPage
+        handleNext={() => {
+          setOpenSheet(false);
+          setCurrentStage(0);
         }}
       />
     ),
-    2: (
-      <ConfirmWalletSelection
-        selectedWallet={selectedWallet}
-        handleBack={() => {
-          setSelectedWallet(null);
-          setCurrentStage(1);
-        }}
-        handleNext={() => setCurrentStage(3)}
-      />
-    ),
-    3: <CreateUsernameForm handleNext={() => setCurrentStage(4)} />,
-    4: <WalletSuccess handleNext={() => setCurrentStage(5)} />,
-    5: <Introduction handleNext={() => setCurrentStage(6)} className="mt-2" />,
-    6: <WalletSettings setCurrentStage={setCurrentStage} />,
-    7: <CreateUsernameForm handleNext={() => setCurrentStage(6)} />,
-    8: <BeneficiaryInfoForm handleNext={() => setCurrentStage(6)} />,
   };
 
   return (
@@ -67,7 +76,7 @@ export default function AddWalletContent({ setCurrentStage, currentStage }: IAdd
           <Separator />
         </SheetHeader>
       )}
-      <div className="px-4">{EachStage[currentStage]}</div>
+      <div className="px-4 overflow-y-auto">{EachStage[currentStage]}</div>
     </>
   );
 }

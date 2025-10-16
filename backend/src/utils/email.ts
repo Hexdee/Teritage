@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 
 import { env } from "../config/env.js";
+import { logger } from "./logger.js";
 
 const hasCredentials = Boolean(env.smtpHost && env.smtpUser && env.smtpPass);
 
@@ -31,7 +32,6 @@ export async function sendEmail(options: SendEmailOptions): Promise<void> {
       html: options.html
     });
   } else {
-    // eslint-disable-next-line no-console
-    console.log("[Email placeholder]", { ...options, from: env.emailFrom });
+    logger.info("[Email placeholder]", { ...options, from: env.emailFrom });
   }
 }

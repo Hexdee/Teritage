@@ -4,13 +4,15 @@ import { getActivities, getTokenSummaryApi, getUserTeritageApi, getWalletTokenAp
 import { ACTIVITIES_KEY, TERITAGES_KEY, WALLETS_SUMMARY_KEY, WALLETS_TOKENS_KEY } from '@/config/key';
 import { ApiResponse, DashboardContextType } from '@/type';
 import { useQuery } from '@tanstack/react-query';
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { useAccount } from 'wagmi';
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
 
 export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const { isConnected, address } = useAccount();
+  const [currentStage, setCurrentStage] = useState<number>(0);
+  const [openSheet, setOpenSheet] = useState<boolean>(false);
 
   const {
     data: teritageData,
@@ -21,7 +23,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     queryKey: [TERITAGES_KEY, isConnected],
     queryFn: () => getUserTeritageApi(address || ''),
     enabled: !!isConnected,
-    retry: 3,
+    retry: 1,
   });
 
   const {
@@ -33,7 +35,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     queryKey: [WALLETS_SUMMARY_KEY, isConnected],
     queryFn: () => getTokenSummaryApi(address || ''),
     enabled: !!isConnected,
-    retry: 3,
+    retry: 1,
   });
 
   const {
@@ -45,7 +47,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     queryKey: [WALLETS_TOKENS_KEY, isConnected],
     queryFn: () => getWalletTokenApi(address || ''),
     enabled: !!isConnected,
-    retry: 3,
+    retry: 1,
   });
 
   const {
@@ -84,6 +86,11 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         isLoadingActivities,
         isActivitiesError,
         activitiesError,
+
+        openSheet,
+        setOpenSheet,
+        currentStage,
+        setCurrentStage,
       }}
     >
       {children}

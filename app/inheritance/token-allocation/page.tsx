@@ -80,7 +80,11 @@ type FormValues = z.infer<typeof formSchema>;
 
 const formatName = (beneficiary: BeneficiaryEntry) => `${beneficiary.firstName} ${beneficiary.lastName}`.trim();
 
-export default function TokenAllocation() {
+interface ITokenAllocation {
+  handleNext?: () => void;
+}
+
+export default function TokenAllocation({ handleNext }: ITokenAllocation) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
   const { address, isConnected } = useAccount();
@@ -203,7 +207,11 @@ export default function TokenAllocation() {
         }))
       );
 
-      router.push(SUCCESS_ALLOCATION_URL);
+      if (handleNext) {
+        handleNext();
+      } else {
+        router.push(SUCCESS_ALLOCATION_URL);
+      }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to save inheritance plan';
       setErrorMessage(message);

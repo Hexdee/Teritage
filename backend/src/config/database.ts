@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+import { logger } from "../utils/logger.js";
 import { env } from "./env.js";
 
 export async function connectDatabase(): Promise<typeof mongoose> {
@@ -8,8 +9,7 @@ export async function connectDatabase(): Promise<typeof mongoose> {
     const connection = await mongoose.connect(env.mongoUri);
     return connection;
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error("Failed to connect to MongoDB", error);
+    logger.error("Failed to connect to MongoDB", error);
     throw error;
   }
 }

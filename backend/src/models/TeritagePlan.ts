@@ -1,4 +1,6 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema, Types } from "mongoose";
+
+import { IUser } from "./User.js";
 
 interface IInheritor {
   address: string;
@@ -33,12 +35,7 @@ interface ICheckIn {
 
 export interface ITeritagePlan extends Document {
   ownerAddress: string;
-  user: {
-    name: string;
-    email: string;
-    phone?: string;
-    notes?: string;
-  };
+  ownerAccount: Types.ObjectId | IUser;
   inheritors: IInheritor[];
   tokens: ITrackedToken[];
   checkInIntervalSeconds: number;
@@ -98,12 +95,7 @@ const tokenSchema = new Schema<ITrackedToken>(
 const teritagePlanSchema = new Schema<ITeritagePlan>(
   {
     ownerAddress: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    user: {
-      name: { type: String, required: true },
-      email: { type: String, required: true },
-      phone: { type: String },
-      notes: { type: String }
-    },
+    ownerAccount: { type: Schema.Types.ObjectId, ref: "TeritageUser", required: true, unique: true, index: true },
     inheritors: { type: [inheritorSchema], default: [] },
     tokens: { type: [tokenSchema], default: [] },
     checkInIntervalSeconds: { type: Number, required: true },

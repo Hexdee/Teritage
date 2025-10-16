@@ -243,27 +243,29 @@ export default function BeneficiaryInfoForm({ handleNext }: INextPage) {
           <span className="font-medium text-inverse">{totalShare}%</span>
         </div>
 
-        <Button
-          type="button"
-          variant="secondary"
-          className="flex items-center gap-2"
-          onClick={() =>
-            append({
-              firstName: '',
-              lastName: '',
-              email: '',
-              walletAddress: '',
-              sharePercentage: 0,
-              notifyBeneficiary: false,
-            })
-          }
-        >
-          <Plus className="h-4 w-4" /> Add Another Beneficiary
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            className="flex items-center gap-2"
+            onClick={() =>
+              append({
+                firstName: '',
+                lastName: '',
+                email: '',
+                walletAddress: '',
+                sharePercentage: 0,
+                notifyBeneficiary: false,
+              })
+            }
+          >
+            <Plus className="h-4 w-4" /> Add Another Beneficiary
+          </Button>
 
-        <Button type="submit" className="w-full">
-          Continue
-        </Button>
+          <Button type="submit" className="w-full">
+            Continue
+          </Button>
+        </div>
       </form>
     </Form>
   );

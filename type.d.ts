@@ -199,4 +199,9 @@ export type DashboardContextType = {
   isLoadingActivities: boolean;
   isActivitiesError: boolean;
   activitiesError: any;
+
+  openSheet: boolean;
+  setOpenSheet: (arg: boolean) => void;
+  currentStage: number;
+  setCurrentStage: (arg: number) => void;
 };
