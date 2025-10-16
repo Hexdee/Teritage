@@ -1,8 +1,9 @@
 'use client';
 
-import { getActivities, getTokenSummaryApi, getUserTeritageApi, getWalletTokenApi } from '@/config/apis';
-import { ACTIVITIES_KEY, TERITAGES_KEY, WALLETS_SUMMARY_KEY, WALLETS_TOKENS_KEY } from '@/config/key';
-import { ApiResponse, DashboardContextType } from '@/type';
+import { getUserTeritageApi, getWalletSummaryApi, getWalletTokensApi, getUserProfileApi } from '@/config/apis';
+import { TERITAGES_KEY, USER_PROFILE_KEY, WALLETS_SUMMARY_KEY, WALLETS_TOKENS_KEY } from '@/config/key';
+import { ApiResponse, DashboardContextType, IWalletData, UserProfile, WalletSummaryResponse, WalletTokensResponse } from '@/type';
+import { AxiosError } from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import React, { createContext, useContext, useState } from 'react';
 import { useAccount } from 'wagmi';
@@ -13,15 +14,16 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const { isConnected, address } = useAccount();
   const [currentStage, setCurrentStage] = useState<number>(0);
   const [openSheet, setOpenSheet] = useState<boolean>(false);
+  const hasWalletAddress = Boolean(isConnected && address);
 
   const {
     data: teritageData,
     isLoading: isLoadingTeritage,
     isError: isTeritageError,
     error: teritageError,
-  }: ApiResponse | any = useQuery<ApiResponse>({
+  } = useQuery<ApiResponse>({
     queryKey: [TERITAGES_KEY, isConnected],
-    queryFn: () => getUserTeritageApi(address || ''),
+    queryFn: () => getUserTeritageApi(),
     enabled: !!isConnected,
     retry: 1,
   });
@@ -31,11 +33,17 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     isLoading: isLoadingWallets,
     isError: isWalletError,
     error: walletError,
-  }: ApiResponse | any = useQuery<ApiResponse>({
-    queryKey: [WALLETS_SUMMARY_KEY, isConnected],
-    queryFn: () => getTokenSummaryApi(address || ''),
-    enabled: !!isConnected,
-    retry: 1,
+  } = useQuery<WalletSummaryResponse, AxiosError>({
+    queryKey: [WALLETS_SUMMARY_KEY, address],
+    queryFn: () => {
+      if (!address) {
+        throw new Error('Wallet address unavailable');
+      }
+      return getWalletSummaryApi(address);
+    },
+    enabled: hasWalletAddress,
+    retry: 2,
+    staleTime: 60 * 1000,
   });
 
   const {
@@ -43,54 +51,71 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     isLoading: isLoadingWalletsToken,
     isError: isWalletTokenError,
     error: walletTokenError,
-  }: ApiResponse | any = useQuery<ApiResponse>({
-    queryKey: [WALLETS_TOKENS_KEY, isConnected],
-    queryFn: () => getWalletTokenApi(address || ''),
-    enabled: !!isConnected,
-    retry: 1,
+  } = useQuery<WalletTokensResponse, AxiosError>({
+    queryKey: [WALLETS_TOKENS_KEY, address],
+    queryFn: () => {
+      if (!address) {
+        throw new Error('Wallet address unavailable');
+      }
+      return getWalletTokensApi(address);
+    },
+    enabled: hasWalletAddress,
+    retry: 2,
+    staleTime: 60 * 1000,
   });
+
+  const normalizedTeritageData = teritageData ? (teritageData as unknown as IWalletData) : null;
 
   const {
-    data: activitiesData,
-    isLoading: isLoadingActivities,
-    isError: isActivitiesError,
-    error: activitiesError,
-  }: ApiResponse | any = useQuery<ApiResponse>({
-    queryKey: [ACTIVITIES_KEY, isConnected],
-    queryFn: () => getActivities(address || ''),
-    enabled: !!isConnected,
-    retry: 3,
+    data: userProfileData,
+    isLoading: isLoadingUserProfile,
+    isError: isUserProfileError,
+    error: userProfileError,
+  } = useQuery<{ user: UserProfile }, AxiosError>({
+    queryKey: [USER_PROFILE_KEY, address],
+    queryFn: getUserProfileApi,
+    enabled: isConnected,
+    retry: 2,
+    staleTime: 60 * 1000,
   });
 
-  console.log({ teritageData });
+  const userProfile = userProfileData?.user ?? null;
 
   return (
     <DashboardContext.Provider
       value={{
-        walletsData,
+        address: address ?? undefined,
+        isConnected,
+
+        walletsData: walletsData ?? null,
         isLoadingWallets,
         isWalletError,
-        walletError,
+        walletError: walletError ?? null,
 
-        teritageData,
+        teritageData: normalizedTeritageData,
         isLoadingTeritage,
         isTeritageError,
-        teritageError,
+        teritageError: teritageError ?? null,
 
-        walletsTokenData,
+        walletsTokenData: walletsTokenData ?? null,
         isLoadingWalletsToken,
         isWalletTokenError,
-        walletTokenError,
 
-        activitiesData,
-        isLoadingActivities,
-        isActivitiesError,
-        activitiesError,
+        // activitiesData,
+        // isLoadingActivities,
+        // isActivitiesError,
+        // activitiesError,
 
         openSheet,
         setOpenSheet,
         currentStage,
         setCurrentStage,
+        walletTokenError: walletTokenError ?? null,
+
+        userProfile,
+        isLoadingUserProfile,
+        isUserProfileError,
+        userProfileError: userProfileError ?? null,
       }}
     >
       {children}

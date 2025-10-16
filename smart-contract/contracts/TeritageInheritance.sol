@@ -254,31 +254,34 @@ contract TeritageInheritance is ReentrancyGuard {
             return 0;
         }
 
-        uint256 allowance = token.allowance(owner, address(this));
-        if (allowance < balance) {
-            revert InsufficientAllowance(tokenAddr, allowance, balance);
+        uint256 inheritorCount = plan.inheritors.length;
+        uint256[] memory shareAmounts = new uint256[](inheritorCount);
+        uint256 requiredAllowance;
+
+        for (uint256 i = 0; i < inheritorCount; i++) {
+            uint256 shareAmount = (balance * plan.shares[i]) / BASIS_POINTS;
+            shareAmounts[i] = shareAmount;
+            requiredAllowance += shareAmount;
         }
 
-        uint256 remaining = balance;
+        if (requiredAllowance == 0) {
+            revert NothingToDistribute();
+        }
 
-        for (uint256 i = 0; i < plan.inheritors.length; i++) {
-            address beneficiary = plan.inheritors[i];
-            uint256 shareAmount;
-            if (i + 1 == plan.inheritors.length) {
-                shareAmount = remaining;
-            } else {
-                shareAmount = (balance * plan.shares[i]) / BASIS_POINTS;
-                if (shareAmount > remaining) {
-                    shareAmount = remaining;
-                }
-            }
+        uint256 allowance = token.allowance(owner, address(this));
+        if (allowance < requiredAllowance) {
+            revert InsufficientAllowance(tokenAddr, allowance, requiredAllowance);
+        }
+
+        for (uint256 i = 0; i < inheritorCount; i++) {
+            uint256 shareAmount = shareAmounts[i];
 
             if (shareAmount == 0) {
                 continue;
             }
 
-            remaining -= shareAmount;
             distributed += shareAmount;
+            address beneficiary = plan.inheritors[i];
             token.safeTransferFrom(owner, beneficiary, shareAmount);
             emit InheritanceDistributed(owner, beneficiary, tokenAddr, shareAmount, msg.sender);
         }
@@ -293,25 +296,15 @@ contract TeritageInheritance is ReentrancyGuard {
         }
 
         int256 total = int256(balance);
-        int256 remaining = total;
         bool distributedForToken;
 
         for (uint256 i = 0; i < plan.inheritors.length; i++) {
+            int256 shareAmount = (total * int256(uint256(plan.shares[i]))) / int256(uint256(BASIS_POINTS));
             address beneficiary = plan.inheritors[i];
-            int256 shareAmount;
-            if (i + 1 == plan.inheritors.length) {
-                shareAmount = remaining;
-            } else {
-                shareAmount = (total * int256(uint256(plan.shares[i]))) / int256(uint256(BASIS_POINTS));
-                if (shareAmount > remaining) {
-                    shareAmount = remaining;
-                }
-            }
 
             if (shareAmount <= 0) {
                 continue;
             }
-
             if (shareAmount > int256(type(int64).max)) {
                 revert HederaTransferAmountOverflow(tokenAddr, shareAmount);
             }
@@ -325,7 +318,6 @@ contract TeritageInheritance is ReentrancyGuard {
             uint256 shareUint = uint256(shareAmount);
             distributed += shareUint;
             distributedForToken = true;
-            remaining -= shareAmount;
 
             emit InheritanceDistributed(owner, beneficiary, tokenAddr, shareUint, msg.sender);
         }
@@ -340,25 +332,15 @@ contract TeritageInheritance is ReentrancyGuard {
         }
 
         int256 total = int256(balance);
-        int256 remaining = total;
         bool distributedForToken;
 
         for (uint256 i = 0; i < plan.inheritors.length; i++) {
+            int256 shareAmount = (total * int256(uint256(plan.shares[i]))) / int256(uint256(BASIS_POINTS));
             address beneficiary = plan.inheritors[i];
-            int256 shareAmount;
-            if (i + 1 == plan.inheritors.length) {
-                shareAmount = remaining;
-            } else {
-                shareAmount = (total * int256(uint256(plan.shares[i]))) / int256(uint256(BASIS_POINTS));
-                if (shareAmount > remaining) {
-                    shareAmount = remaining;
-                }
-            }
 
             if (shareAmount <= 0) {
                 continue;
             }
-
             if (shareAmount > int256(type(int64).max)) {
                 revert HederaTransferAmountOverflow(address(0), shareAmount);
             }
@@ -377,7 +359,6 @@ contract TeritageInheritance is ReentrancyGuard {
             uint256 shareUint = uint256(shareAmount);
             distributed += shareUint;
             distributedForToken = true;
-            remaining -= shareAmount;
 
             emit InheritanceDistributed(owner, beneficiary, address(0), shareUint, msg.sender);
         }
@@ -435,7 +416,7 @@ contract TeritageInheritance is ReentrancyGuard {
                 if (inheritors[i] == inheritors[j]) revert InvalidConfiguration();
             }
         }
-        if (total != BASIS_POINTS) revert InvalidConfiguration();
+        if (total == 0 || total > BASIS_POINTS) revert InvalidConfiguration();
     }
 
     function _validateTokens(address[] calldata tokens, uint8[] calldata tokenTypes) private view {

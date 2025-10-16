@@ -240,8 +240,8 @@ export const InfoCircleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) =
       strokeLinecap="round"
       strokeLinejoin="round"
     />
-    <path d="M10 6.77499V10.8" stroke="#F2F2F2" stroke-opacity="0.5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-    <path d="M9.99609 13.3333H10.0036" stroke="#F2F2F2" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M10 6.77499V10.8" stroke="#F2F2F2" stroke-opacity="0.5" strokeWidth="1.5" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M9.99609 13.3333H10.0036" stroke="#F2F2F2" stroke-opacity="0.5" strokeWidth="2" stroke-linecap="round" stroke-linejoin="round" />
   </svg>
 );
 

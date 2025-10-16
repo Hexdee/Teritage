@@ -1,29 +1,86 @@
 'use client';
 import DataTable from '@/components/ui/data-table';
-import { columns } from './columns';
-import { CalenderIcon, MagicPenIcon } from '@/components/icons';
-import { useApplications } from '@/context/dashboard-provider';
 import { DashboardSkeleton } from '@/components/ui/loading';
+import EmptyState from '@/components/ui/empty-state';
+import { useApplications } from '@/context/dashboard-provider';
+import { columns } from './columns';
+
+const formatDate = (value: string) =>
+  new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(value));
 
 export default function ActivityPage() {
-  const { activitiesData, isLoadingActivities, isActivitiesError, activitiesError } = useApplications();
-  const data = [
-    { icon: <CalenderIcon />, type: 'Health Check-In', date: '10th August, 2025 • 9:04 AM', status: 'success' },
-    { icon: <CalenderIcon />, type: 'Health Check-In', date: '10th August, 2025 • 9:04 AM', status: 'triggered' },
-    { icon: <MagicPenIcon />, type: 'Wallet Added', date: '10th August, 2025 • 9:04 AM', status: 'success' },
-  ];
+  const { teritageData, isLoadingTeritage, isTeritageError, teritageError } = useApplications();
 
-  if (isLoadingActivities) {
+  if (isLoadingTeritage) {
     return <DashboardSkeleton />;
   }
 
-  if (isActivitiesError) {
-    throw new Error(activitiesError?.response?.data?.message || 'Error occured while trying to access the server');
+  if (isTeritageError) {
+    const message = (teritageError as any)?.response?.data?.message ?? (teritageError instanceof Error ? teritageError.message : 'Unable to load activities');
+    return (
+      <div className="h-[70vh] flex items-center px-20">
+        <div className="w-full space-y-6">
+          <EmptyState />
+          <p className="text-center text-sm text-destructive">{message}</p>
+        </div>
+      </div>
+    );
   }
 
-  console.log({ activitiesData });
+  const activities = teritageData?.plan?.activities ?? [];
+
+  if (!activities.length) {
+    return (
+      <div className="h-[70vh] flex items-center px-20">
+        <EmptyState />
+      </div>
+    );
+  }
+
+  const data = activities.map((activity) => {
+    switch (activity.type) {
+      case 'CHECK_IN':
+        return {
+          icon: 'check-in',
+          type: 'Health Check-In',
+          date: formatDate(activity.timestamp),
+          status: 'success',
+        };
+      case 'PLAN_UPDATED':
+        return {
+          icon: 'plan',
+          type: 'Plan Updated',
+          date: formatDate(activity.timestamp),
+          status: 'success',
+        };
+      case 'CLAIM_TRIGGERED':
+        return {
+          icon: 'claim',
+          type: 'Claim Triggered',
+          date: formatDate(activity.timestamp),
+          status: 'triggered',
+        };
+      case 'PLAN_CREATED':
+      default:
+        return {
+          icon: 'plan',
+          type: 'Plan Created',
+          date: formatDate(activity.timestamp),
+          status: 'success',
+        };
+    }
+  });
+
+  console.log({ data });
+
   return (
-    <div>
+    <div className="text-inverse">
       <DataTable columns={columns} data={data} />
     </div>
   );

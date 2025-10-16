@@ -187,6 +187,53 @@ describe("TeritageInheritance", function () {
     );
   });
 
+  it("allows share totals below 100% and preserves the owner's remainder", async function () {
+    const { owner, inheritorA, inheritorB, tokenA, teritage, erc20Amount } = await loadFixture(deployFixture);
+
+    await teritage
+      .connect(owner)
+      .createPlan(
+        [inheritorA.address, inheritorB.address],
+        [3000, 2000],
+        [await tokenA.getAddress()],
+        [0],
+        ONE_DAY
+      );
+
+    const distributable = (erc20Amount * 5000n) / 10000n;
+    await tokenA.connect(owner).approve(await teritage.getAddress(), distributable);
+
+    await time.increase(ONE_DAY + 5);
+
+    await teritage.connect(inheritorA).claimInheritance(owner.address);
+
+    const expectedA = (erc20Amount * 3000n) / 10000n;
+    const expectedB = (erc20Amount * 2000n) / 10000n;
+    const ownerBalance = await tokenA.balanceOf(owner.address);
+    const inheritorABalance = await tokenA.balanceOf(inheritorA.address);
+    const inheritorBBalance = await tokenA.balanceOf(inheritorB.address);
+
+    expect(inheritorABalance).to.equal(expectedA);
+    expect(inheritorBBalance).to.equal(expectedB);
+    expect(ownerBalance).to.equal(erc20Amount - expectedA - expectedB);
+  });
+
+  it("rejects share totals above 100%", async function () {
+    const { owner, inheritorA, inheritorB, tokenA, teritage } = await loadFixture(deployFixture);
+
+    await expect(
+      teritage
+        .connect(owner)
+        .createPlan(
+          [inheritorA.address, inheritorB.address],
+          [7000, 4000],
+          [await tokenA.getAddress()],
+          [0],
+          ONE_DAY
+        )
+    ).to.be.revertedWithCustomError(teritage, "InvalidConfiguration");
+  });
+
   it("requires sufficient ERC-20 allowance to cover balances", async function () {
     const { owner, inheritorA, inheritorB, tokenA, teritage, htsToken } = await loadFixture(deployFixture);
 

@@ -5,12 +5,12 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
-import { SIGN_UP_URL, WALLET_URL } from '@/config/path';
+import { CONNECT_WALLET_URL, SIGN_UP_URL, WALLET_URL } from '@/config/path';
 import { useMutation } from '@tanstack/react-query';
-import { userLogin } from '@/config/apis';
+import { getUserTeritageApi, userLogin } from '@/config/apis';
 import { toast } from 'sonner';
 import ShowError from '../errors/display-error';
 import { useState } from 'react';
@@ -18,7 +18,7 @@ import FormGroup from '../ui/form-group';
 import InputAdornment from '../ui/input-adornment';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
-import { setCookie } from 'cookies-next';
+import { isAxiosError } from 'axios';
 
 const FormSchema = z.object({
   email: z.string().email({
@@ -44,11 +44,19 @@ export function LoginForm() {
 
   const { mutate, isPending } = useMutation({
     mutationFn: userLogin,
-    onSuccess: async (response: any) => {
-      console.log(response);
-      await setCookie('teritage_token', response.token);
+    onSuccess: async () => {
       toast.success('Login successfully');
-      router.push(WALLET_URL);
+      try {
+        await getUserTeritageApi();
+        router.replace(WALLET_URL);
+      } catch (error) {
+        if (isAxiosError(error) && error.response?.status === 404) {
+          router.replace(CONNECT_WALLET_URL);
+          return;
+        }
+        const message = (error as any)?.response?.data?.message || (error instanceof Error ? error.message : 'Unable to load Teritage plan');
+        setErrorMessage(message);
+      }
     },
     onError: (error: any) => setErrorMessage(error?.response?.data?.message || 'An error occured while processing'),
   });

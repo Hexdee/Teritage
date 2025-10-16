@@ -1,24 +1,27 @@
-interface ISelectedWallet {
+export interface ISelectedWallet {
   name: string;
   logo: string;
 }
 
-interface ICreateUsernameForm {
+export interface ICreateUsernameForm {
   handleNext: (arg: { username: string }) => void;
   errorMessage: string | null;
   setErrorMessage: (arg: string | null) => void;
   isLoading: boolean;
 }
 
-interface INextPage {
-  handleNext: () => void;
+export interface INextPage {
+  handleNext?: () => void;
   className?: string;
+  isLoading?: boolean;
+  newBeneficiary?: boolean;
+  handleNext2?: (arg: BeneficiaryEntry) => void;
 }
 
-interface ISelectWalletNextPage {
+export interface ISelectWalletNextPage {
   handleNext: () => void;
   className?: string;
-  handleViewWallet: () => void;
+  handleViewWallet: (arg: WalletToken) => void;
 }
 
 export interface ApiResponse {
@@ -52,7 +55,6 @@ export interface TeritageUserProfileInput {
 
 export interface CreateTeritagePlanRequest {
   ownerAddress: string;
-  user: TeritageUserProfileInput;
   inheritors: TeritageInheritorInput[];
   tokens: TeritageTokenConfig[];
   checkInIntervalSeconds: number;
@@ -61,12 +63,98 @@ export interface CreateTeritagePlanRequest {
 }
 
 export interface UpdateTeritagePlanRequest {
-  user?: Partial<TeritageUserProfileInput>;
   inheritors?: TeritageInheritorInput[];
   tokens?: TeritageTokenConfig[];
   checkInIntervalSeconds?: number;
   socialLinks?: string[];
   notifyBeneficiary?: boolean;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  username?: string | null;
+  name: string | null;
+  phone: string | null;
+  notes: string | null;
+  allowNotifications: boolean;
+  walletAddresses: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ICheckIn {
+  checkIns: {
+    id: string;
+    timestamp: string;
+    secondsSinceLast: number;
+    timelinessPercent: number;
+    triggeredBy: string;
+    note: string;
+  }[];
+}
+
+export interface UpdateUserProfileRequest {
+  name?: string | null;
+  phone?: string | null;
+  notes?: string | null;
+  allowNotifications?: boolean;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface VerifyPinRequest {
+  pin: string;
+}
+
+export interface ChangePinRequest {
+  currentPin: string;
+  newPin: string;
+}
+
+export interface CreatePinRequest {
+  pin: string;
+}
+
+export interface PinVerificationResponse {
+  valid: boolean;
+  hasPin: boolean;
+}
+
+export interface UpdateWalletAddressesRequest {
+  walletAddresses: string[];
+}
+
+export interface WalletToken {
+  tokenId: string;
+  symbol: string;
+  name: string;
+  decimals: number;
+  balance: number;
+  priceUsd: number;
+  change24hPercent: number;
+  iconUrl?: string;
+}
+
+export interface WalletTokensResponse {
+  tokens: WalletToken[];
+}
+
+export interface WalletSummary {
+  totalPortfolioValueUsd: number;
+  change24hPercent: number;
+  assignedPercentage: number;
+  unallocatedPercentage: number;
+  notifyBeneficiary: boolean;
+  socialLinks: string[];
+  tokenCount: number;
+}
+
+export interface WalletSummaryResponse {
+  summary: WalletSummary;
 }
 
 export type WebContextType = {
@@ -154,54 +242,52 @@ interface IWalletData {
 }
 
 export type DashboardContextType = {
-  walletsData: {
-    summary: {
-      totalPortfolioValueUsd: number;
-      change24hPercent: number;
-      assignedPercentage: number;
-      unallocatedPercentage: number;
-      notifyBeneficiary: boolean;
-      socialLinks: string[];
-      tokenCount: number;
-    };
-  };
+  address?: string;
+  isConnected: boolean;
+
+  walletsData: WalletSummaryResponse | null;
   isLoadingWallets: boolean;
   isWalletError: boolean;
-  walletError: any;
+  walletError: unknown;
 
-  teritageData: IWalletData;
+  teritageData: IWalletData | null;
   isLoadingTeritage: boolean;
   isTeritageError: boolean;
-  teritageError: any;
+  teritageError: unknown;
 
-  walletsTokenData: {
-    tokens: {
-      tokenId: string;
-      symbol: string;
-      name: string;
-      decimals: number;
-      balance: number;
-      priceUsd: number;
-      change24hPercent: number;
-    }[];
-  };
+  walletsTokenData: WalletTokensResponse | null;
   isLoadingWalletsToken: boolean;
   isWalletTokenError: boolean;
   walletTokenError: any;
 
-  activitiesData: {
-    id: string;
-    type: string;
-    description: string;
-    metadata: any;
-    timestamp: string;
-  }[];
-  isLoadingActivities: boolean;
-  isActivitiesError: boolean;
-  activitiesError: any;
+  // activitiesData: {
+  //   id: string;
+  //   type: string;
+  //   description: string;
+  //   metadata: any;
+  //   timestamp: string;
+  // }[];
+  // isLoadingActivities: boolean;
+  // isActivitiesError: boolean;
+  // activitiesError: any;
 
   openSheet: boolean;
   setOpenSheet: (arg: boolean) => void;
   currentStage: number;
   setCurrentStage: (arg: number) => void;
+  walletTokenError: unknown | null;
+
+  userProfile: UserProfile | null;
+  isLoadingUserProfile: boolean;
+  isUserProfileError: boolean;
+  userProfileError: unknown;
 };
+
+interface IInheritors {
+  address: string;
+  sharePercentage: number;
+  name: string;
+  email: string;
+  phone: string;
+  notes: string;
+}

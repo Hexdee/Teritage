@@ -22,7 +22,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { formatAddress } from '@/lib/utils';
 import ShowError from '@/components/errors/display-error';
 
-const ZERO_ADDRESS = zeroAddress;
+export const ZERO_ADDRESS = zeroAddress;
 
 const tokenSchema = z
   .object({
@@ -78,7 +78,7 @@ const formSchema = z
 
 type FormValues = z.infer<typeof formSchema>;
 
-const formatName = (beneficiary: BeneficiaryEntry) => `${beneficiary.firstName} ${beneficiary.lastName}`.trim();
+export const formatName = (beneficiary: BeneficiaryEntry) => `${beneficiary.firstName} ${beneficiary.lastName}`.trim();
 
 interface ITokenAllocation {
   handleNext?: () => void;
@@ -89,7 +89,7 @@ export default function TokenAllocation({ handleNext }: ITokenAllocation) {
   const router = useRouter();
   const { address, isConnected } = useAccount();
   const { createPlan, isPending } = useTeritageContract();
-  const { checkInIntervalSeconds, beneficiaries, tokens, socialLinks, ownerProfile, setTokens } = useInheritancePlanStore();
+  const { checkInIntervalSeconds, beneficiaries, tokens, socialLinks, setTokens } = useInheritancePlanStore();
 
   const defaultTokens = tokens.length
     ? tokens.map((token) => ({
@@ -155,39 +155,24 @@ export default function TokenAllocation({ handleNext }: ITokenAllocation) {
 
       const sanitizedSocialLinks = socialLinks.map((link) => link.url.trim()).filter((url) => url.length > 0);
 
-      const trimmedOwnerPhone = ownerProfile?.phone?.trim();
-      const trimmedOwnerNotes = ownerProfile?.notes?.trim();
-      const normalizedOwnerProfile = ownerProfile
-        ? {
-            name: ownerProfile.name.trim(),
-            email: ownerProfile.email.trim(),
-            ...(trimmedOwnerPhone ? { phone: trimmedOwnerPhone } : {}),
-            ...(trimmedOwnerNotes ? { notes: trimmedOwnerNotes } : {}),
-          }
-        : null;
-
       const shouldNotifyBeneficiaries = beneficiaries.some((beneficiary) => beneficiary.notifyBeneficiary);
 
-      const backendPayload =
-        normalizedOwnerProfile && normalizedOwnerProfile.name && normalizedOwnerProfile.email
-          ? {
-              ownerAddress: getAddress(address),
-              user: normalizedOwnerProfile,
-              inheritors: beneficiaries.map((beneficiary) => ({
-                address: getAddress(beneficiary.walletAddress),
-                sharePercentage: Math.round(beneficiary.sharePercentage),
-                name: formatName(beneficiary),
-                email: beneficiary.email.trim(),
-              })),
-              tokens: normalizedTokens.map((token) => ({
-                type: token.type,
-                address: token.address,
-              })),
-              checkInIntervalSeconds,
-              ...(sanitizedSocialLinks.length ? { socialLinks: sanitizedSocialLinks } : {}),
-              ...(shouldNotifyBeneficiaries ? { notifyBeneficiary: true } : {}),
-            }
-          : undefined;
+      const backendPayload = {
+        ownerAddress: getAddress(address),
+        inheritors: beneficiaries.map((beneficiary) => ({
+          address: getAddress(beneficiary.walletAddress),
+          sharePercentage: Math.round(beneficiary.sharePercentage),
+          name: formatName(beneficiary),
+          email: beneficiary.email.trim(),
+        })),
+        tokens: normalizedTokens.map((token) => ({
+          type: token.type,
+          address: token.address,
+        })),
+        checkInIntervalSeconds,
+        ...(sanitizedSocialLinks.length ? { socialLinks: sanitizedSocialLinks } : {}),
+        ...(shouldNotifyBeneficiaries ? { notifyBeneficiary: true } : {}),
+      };
 
       await createPlan({
         inheritors: inheritorAddresses,

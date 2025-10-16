@@ -7,12 +7,12 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useRouter } from 'next/navigation';
-import { SUCCESS_URL } from '@/config/path';
+import { useState } from 'react';
 import InputAdornment from '../ui/input-adornment';
 import FormGroup from '../ui/form-group';
 import { Eye, EyeOff } from 'lucide-react';
-import { useState } from 'react';
+import { changePasswordApi } from '@/config/apis';
+import { toast } from 'sonner';
 
 export const FormSchema = z
   .object({
@@ -35,7 +35,7 @@ export function ChangePasswordForm() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState<boolean>(false);
-  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
   const toggleConfirmPasswordVisibility = () => setShowConfirmPassword((prev) => !prev);
@@ -50,9 +50,19 @@ export function ChangePasswordForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof FormSchema>) {
-    console.log(values);
-    router.push(SUCCESS_URL);
+  async function onSubmit(values: z.infer<typeof FormSchema>) {
+    try {
+      setIsSubmitting(true);
+      await changePasswordApi({ currentPassword: values.currentPassword, newPassword: values.password });
+      toast.success('Password updated successfully');
+      form.reset();
+    } catch (error) {
+      const message =
+        (error as any)?.response?.data?.message ?? (error instanceof Error ? error.message : 'Failed to update password');
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -159,7 +169,7 @@ export function ChangePasswordForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
           Continue
         </Button>
       </form>

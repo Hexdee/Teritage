@@ -1,26 +1,89 @@
-import Link from 'next/link';
 import { Avatar, AvatarFallback } from '../ui/avatar';
-import { BENEFICIARY_INFO_URL } from '@/config/path';
 import { Button } from '../ui/button';
 import { PencilIcon } from '../icons';
 import { Separator } from '../ui/separator';
-// import { BeneficiaryRow } from '@/app/(dashboard)/beneficiary/columns';
+import { Slider } from '@/components/ui/slider';
+import { useState } from 'react';
+import { updateTeritagePlanApi } from '@/config/apis';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { TERITAGES_KEY } from '@/config/key';
+import ShowError from '../errors/display-error';
+import { UpdateTeritagePlanRequest } from '@/type';
+import { useInheritancePlanStore } from '@/store/useInheritancePlanStore';
+import { useApplications } from '@/context/dashboard-provider';
+import { transformBeneficiaries } from '@/lib/utils';
 
 const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(value);
 
 interface ManageAllocationProps {
-  beneficiary: {
-    sharePercentage: number;
-    name: string;
-    email: string;
-    notifyBeneficiary: boolean;
-    full_wallet_address: string;
-  };
+  beneficiary:
+    | {
+        sharePercentage: number;
+        name: string;
+        email: string;
+        notifyBeneficiary: boolean;
+        full_wallet_address: string;
+      }
+    | any;
   totalValue: number;
+  setCurrentStage: (arg: number) => void;
 }
 
-export default function ManageAllocation({ beneficiary, totalValue }: ManageAllocationProps) {
+export default function ManageAllocation({ beneficiary, totalValue, setCurrentStage }: ManageAllocationProps) {
+  const queryClient: any = useQueryClient();
+  const { teritageData } = useApplications();
   const allocatedValue = Number(((totalValue * beneficiary.sharePercentage) / 100).toFixed(2));
+  const [newAllocation, setNewAllocation] = useState<number[]>([beneficiary.sharePercentage]);
+  const [errorField, setErrorField] = useState<string | null>(null);
+  const { setBeneficiaries } = useInheritancePlanStore();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: updateTeritagePlanApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries(TERITAGES_KEY);
+      toast.success('Plan updated successfully');
+      setErrorField(null);
+      setCurrentStage(1);
+    },
+    onError: (error: any) => setErrorField(error?.response?.data?.message || 'An error occured while processing'),
+  });
+
+  console.log({ teritageData });
+
+  const handleChangeAllocation = () => {
+    setErrorField(null);
+    const inheritors = teritageData?.plan.inheritors.map((item) => {
+      if (item.email === beneficiary.email) {
+        return { ...item, sharePercentage: newAllocation[0] };
+      }
+      return item;
+    });
+
+    const totalShare = inheritors?.reduce((acc, item) => acc + (Number(item.sharePercentage) || 0), 0);
+    if (totalShare && totalShare > 100) {
+      setErrorField('Total share cannot exceed 100%');
+    } else {
+      console.log(inheritors);
+
+      const payload: UpdateTeritagePlanRequest = {
+        inheritors,
+        tokens: teritageData?.plan.tokens as any,
+        checkInIntervalSeconds: teritageData?.plan.checkInIntervalSeconds,
+        socialLinks: teritageData?.plan.socialLinks,
+        notifyBeneficiary: teritageData?.plan.notifyBeneficiary,
+      };
+
+      mutate(payload);
+    }
+  };
+
+  const handleSelectEdit = () => {
+    setCurrentStage(3);
+    if (teritageData?.plan) {
+      setBeneficiaries(transformBeneficiaries([{ ...beneficiary, address: beneficiary.full_wallet_address }]));
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -52,11 +115,10 @@ export default function ManageAllocation({ beneficiary, totalValue }: ManageAllo
             </Avatar>
             <span className="font-medium text-inverse">{beneficiary.name}</span>
           </div>
-          <Link href={BENEFICIARY_INFO_URL}>
-            <Button variant="ghost" size="sm" className="bg-card text-xs text-inverse px-2 py-0.5 h-7" startIcon={<PencilIcon />}>
-              Edit
-            </Button>
-          </Link>
+
+          <Button variant="ghost" size="sm" className="bg-card text-xs text-inverse px-2 py-0.5 h-7" startIcon={<PencilIcon />} onClick={handleSelectEdit}>
+            Edit
+          </Button>
         </div>
 
         <div className="text-sm text-muted-foreground space-y-1">
@@ -80,10 +142,23 @@ export default function ManageAllocation({ beneficiary, totalValue }: ManageAllo
             Allocation: <span className="text-inverse font-medium">{beneficiary.sharePercentage}%</span>
           </p>
         </div>
+        <Separator />
+
+        <div className="text-sm text-muted-foreground space-y-2">
+          <p>Allotted Percentage</p>
+          <div className="flex items-center gap-4">
+            <div className="bg-[#F2F2F20D] w-[90%] p-2.5 py-4 rounded-md">
+              <Slider defaultValue={newAllocation} max={100} step={1} onValueChange={(value) => setNewAllocation(value)} />
+            </div>
+            <div className="bg-[#F2F2F20D] w-[10%] p-2.5 py-4 rounded-md text-white flex items-center justify-center">{newAllocation[0]}%</div>
+          </div>
+        </div>
       </div>
 
-      <Button asChild>
-        <Link href={BENEFICIARY_INFO_URL}>Adjust allocation</Link>
+      <ShowError error={errorField} setError={setErrorField} />
+
+      <Button onClick={handleChangeAllocation} loadingText="Please wait..." isLoading={isPending}>
+        Save changes
       </Button>
     </div>
   );

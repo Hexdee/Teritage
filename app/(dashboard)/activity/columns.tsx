@@ -2,8 +2,7 @@
 
 import Image from 'next/image';
 import { ReactNode } from 'react';
-import { CheckMarkGreen } from '@/components/icons';
-import { format, parseISO } from 'date-fns';
+import { CalenderIcon, CheckMarkGreen, MagicPenIcon } from '@/components/icons';
 
 const columns: {
   accessorKey: string;
@@ -18,10 +17,10 @@ const columns: {
     cell: ({ row }) => <TypeCell data={row.original} />,
   },
   {
-    accessorKey: 'timestamp',
+    accessorKey: 'date',
     header: 'Date',
-    key: 'timestamp',
-    cell: ({ row }) => <p>{format(parseISO(row.original.timestamp), 'MMM d, yyyy : h:mm a')}</p>,
+    key: 'date',
+    cell: ({ row }) => <p>{row.original.date}</p>,
   },
   {
     accessorKey: 'status',
@@ -33,10 +32,16 @@ const columns: {
 
 export { columns };
 
+const iconMap: Record<string, ReactNode> = {
+  'check-in': <CalenderIcon />,
+  plan: <MagicPenIcon />,
+  claim: <CalenderIcon />,
+};
+
 interface IData {
   data: {
     type: string;
-    icon: ReactNode;
+    icon: string;
     status: string;
   };
 }
@@ -44,7 +49,7 @@ interface IData {
 export const TypeCell = ({ data }: IData) => {
   return (
     <div className="space-x-2 flex items-center">
-      <div className="rounded-full p-1 bg-card">{data.icon}</div>
+      <div className="rounded-full p-1 bg-card">{iconMap[data.icon] ?? <MagicPenIcon />}</div>
       <p className="">{data.type}</p>
     </div>
   );
