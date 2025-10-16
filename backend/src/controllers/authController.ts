@@ -8,9 +8,11 @@ import {
   setPassword,
   setUsername,
   signIn,
-  verifyCode} from "../services/authService.js";
+  verifyCode
+} from "../services/authService.js";
 import { ApiError } from "../utils/errors.js";
 import { signAccessToken } from "../utils/jwt.js";
+import { logger } from "../utils/logger.js";
 
 const emailSchema = z.string().email();
 
@@ -118,19 +120,16 @@ export async function handleSetUsername(req: Request, res: Response): Promise<vo
 
 function handleControllerError(context: string, err: unknown, res: Response) {
   if (err instanceof ApiError) {
-    // eslint-disable-next-line no-console
-    console.error(`[${context}]`, err);
+    logger.error(`[${context}] ${err.message}`, err);
     res.status(err.status).json({ message: err.message });
     return;
   }
 
   if (err instanceof Error) {
-    // eslint-disable-next-line no-console
-    console.error(`[${context}]`, err);
+    logger.error(`[${context}] ${err.message}`, err);
     res.status(500).json({ message: err.message });
   } else {
-    // eslint-disable-next-line no-console
-    console.error(`[${context}]`, err);
+    logger.error(`[${context}] Unexpected error`, err);
     res.status(500).json({ message: "Unexpected error" });
   }
 }

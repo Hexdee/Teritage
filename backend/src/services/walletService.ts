@@ -1,15 +1,15 @@
 import { ITeritagePlan } from "../models/TeritagePlan.js";
 import { fetchHederaTokenBalances } from "./hederaService.js";
-import { getTeritagePlan } from "./teritageService.js";
+import { getTeritagePlanByOwnerAddress } from "./teritageService.js";
 
-export async function getWalletTokens(accountId: string) {
-  return fetchHederaTokenBalances(accountId);
+export async function getWalletTokens(ownerIdentifier: string) {
+  return fetchHederaTokenBalances(ownerIdentifier);
 }
 
-export async function getWalletSummary(ownerAddress: string, accountId: string) {
+export async function getWalletSummary(ownerIdentifier: string) {
   const [planDoc, tokens] = await Promise.all([
-    getTeritagePlan(ownerAddress),
-    fetchHederaTokenBalances(accountId)
+    getTeritagePlanByOwnerAddress(ownerIdentifier),
+    fetchHederaTokenBalances(ownerIdentifier)
   ]);
 
   const plan = planDoc ? (planDoc.toObject({ versionKey: false }) as ITeritagePlan) : undefined;

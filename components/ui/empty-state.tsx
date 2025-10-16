@@ -1,8 +1,14 @@
+import { Inbox } from 'lucide-react';
 import { Skeleton } from './skeleton';
+import { Button } from './button';
 
-export default function EmptyState() {
+interface IEmptyState {
+  hasButton?: boolean;
+}
+
+export default function EmptyState({ hasButton }: IEmptyState) {
   return (
-    <div className="flex justify-between w-full">
+    <div className="flex justify-between w-full items-center">
       <div className="flex items-center space-x-4 w-[15%]">
         <Skeleton className="h-12 w-16 rounded-full" />
         <div className="space-y-2 w-full">
@@ -10,9 +16,15 @@ export default function EmptyState() {
           <Skeleton className="h-4 w-full" />
         </div>
       </div>
-      <div className="text-center mx-auto w-[70%]">
-        <p className="text-inverse">Secure your Legacy</p>
-        <p className="text-muted-foreground">Add tokens to your wallet to allocate assets for inheritance.</p>
+      <div className="text-center mx-auto w-[70%] space-y-4">
+        <div className="">
+          <div className="flex justify-center">
+            <Inbox size={120} className="mb-4" />
+          </div>
+          <p className="text-inverse">Secure your Legacy</p>
+          <p className="text-muted-foreground">Add tokens to your wallet to allocate assets for inheritance.</p>
+        </div>
+        {hasButton && <Button className="w-[60%]">Set up Inheritance</Button>}
       </div>
       <div className="space-y-2 w-[15%]">
         <Skeleton className="h-4 w-full" />

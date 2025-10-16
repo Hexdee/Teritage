@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
@@ -5,10 +6,11 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { ReactNode } from 'react';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import CurrencyText from '@/components/ui/currency-text';
 import { ArrowUp } from 'lucide-react';
+import { useAccount } from 'wagmi';
 
 const columns: {
   accessorKey: string;
@@ -17,33 +19,34 @@ const columns: {
   cell?: (arg: any) => ReactNode;
 }[] = [
   {
-    accessorKey: 'coin',
+    accessorKey: 'name',
     header: 'Coin',
-    key: 'coin',
+    key: 'name',
     cell: ({ row }) => <CoinCell data={row.original} />,
   },
   {
-    accessorKey: 'amount',
+    accessorKey: 'priceUsd',
     header: 'Amount',
-    key: 'amount',
+    key: 'priceUsd',
   },
   {
-    accessorKey: 'available',
+    accessorKey: 'balance',
     header: 'Available',
-    key: 'available',
+    key: 'balance',
+    cell: ({ row }) => <p>{row.original.balance + ' ' + row.original.symbol}</p>,
   },
   {
-    accessorKey: 'period',
+    accessorKey: 'change24hPercent',
     header: '24H Change',
-    key: 'period',
-    cell: ({ row }) => <p className={cn(row.original.increment ? 'text-success' : 'text-destructive')}>{row.original.period}</p>,
+    key: 'change24hPercent',
+    cell: ({ row }) => <p className={cn(row.original.increment ? 'text-success' : 'text-destructive')}>{row.original.change24hPercent}%</p>,
   },
-  {
-    accessorKey: 'action',
-    header: '',
-    key: 'action',
-    cell: () => <ActionCell />,
-  },
+  // {
+  //   accessorKey: 'action',
+  //   header: '',
+  //   key: 'action',
+  //   cell: () => <ActionCell />,
+  // },
 ];
 
 export { columns };
@@ -112,21 +115,19 @@ export const ActionCell = () => {
 
 interface IData {
   data: {
-    coin: {
-      logo: string;
-      title: string;
-      symbol: string;
-    };
+    name: string;
+    symbol: string;
   };
 }
 
 export const CoinCell = ({ data }: IData) => {
+  const { address } = useAccount();
   return (
     <div className="space-x-2 flex items-center">
-      <Image src={data.coin.logo} width={32} height={32} alt={data.coin.title} />
+      <img src={`https://api.dicebear.com/7.x/identicon/svg?seed=${address}`} alt="logo" className="rounded-full h-4 w-4" />
       <div className="space-y-1">
-        <p className="text-inverse">{data.coin.title}</p>
-        <p className="text-muted-foreground">{data.coin.symbol}</p>
+        <p className="text-inverse">{data.name}</p>
+        <p className="text-muted-foreground">{data.symbol}</p>
       </div>
     </div>
   );

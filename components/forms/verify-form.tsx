@@ -8,8 +8,16 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import VerifyError from '../errors/verify-error';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { SET_PASSWORD_URL } from '@/config/path';
+import { useMutation } from '@tanstack/react-query';
+import { userSignUp, userSignUpVerify } from '@/config/apis';
+import { toast } from 'sonner';
+import { useState } from 'react';
+import ShowError from '../errors/display-error';
+import { Loader } from 'lucide-react';
+
+import { setCookie } from 'cookies-next';
 
 const FormSchema = z.object({
   pin: z.string().min(6, {
@@ -19,6 +27,10 @@ const FormSchema = z.object({
 
 export function VerifyForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const email = searchParams.get('email') || '';
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const isError = false;
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -27,9 +39,30 @@ export function VerifyForm() {
     },
   });
 
+  const { mutate: mutateResend, isPending: isResending } = useMutation({
+    mutationFn: userSignUp,
+    onSuccess: (response) => toast.success(response.message),
+    onError: (error: any) => setErrorMessage(error?.response?.data?.message || 'An error occured while processing'),
+  });
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: userSignUpVerify,
+    onSuccess: async (response: any) => {
+      toast.success('User verified successfully');
+      await setCookie('teritage_token', response.verificationToken);
+      router.push(`${SET_PASSWORD_URL}?email=${email}`);
+    },
+    onError: (error: any) => setErrorMessage(error?.response?.data?.message || 'An error occured while processing'),
+  });
+
+  const handleResend = () => {
+    setErrorMessage(null);
+    mutateResend({ email });
+  };
+
   function onSubmit(values: z.infer<typeof FormSchema>) {
-    console.log(values);
-    router.push(SET_PASSWORD_URL);
+    setErrorMessage(null);
+    mutate({ code: values.pin, email });
   }
 
   return (
@@ -39,6 +72,7 @@ export function VerifyForm() {
       ) : (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <ShowError error={errorMessage} setError={setErrorMessage} />
             <FormField
               control={form.control}
               name="pin"
@@ -60,17 +94,20 @@ export function VerifyForm() {
                       </InputOTPGroup>
                     </InputOTP>
                   </FormControl>
-                  <p className="text-sm text-muted">
-                    Didn’t receive code?{' '}
-                    <span className="text-primary" role="button">
-                      Resend
-                    </span>
-                  </p>
+                  <div className="flex space-x-2 items-center">
+                    <p className="text-sm text-muted">
+                      Didn’t receive code?{' '}
+                      <span className="text-primary cursor-pointer" role="button" onClick={handleResend}>
+                        Resend
+                      </span>
+                    </p>
+                    {isResending && <Loader className="mr-2 h-4 w-4 animate-spin" />}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" loadingText="Please wait..." isLoading={isPending}>
               Continue
             </Button>
             <p className="text-sm text-muted text-center">

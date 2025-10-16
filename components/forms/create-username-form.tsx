@@ -7,6 +7,8 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { ICreateUsernameForm } from '@/type';
+import ShowError from '../errors/display-error';
 
 const FormSchema = z.object({
   username: z.string().min(2, {
@@ -14,7 +16,7 @@ const FormSchema = z.object({
   }),
 });
 
-export function CreateUsernameForm({ handleNext }: ICreateUsernameForm) {
+export function CreateUsernameForm({ handleNext, errorMessage, setErrorMessage, isLoading }: ICreateUsernameForm) {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -23,13 +25,13 @@ export function CreateUsernameForm({ handleNext }: ICreateUsernameForm) {
   });
 
   function onSubmit(values: z.infer<typeof FormSchema>) {
-    console.log(values);
-    handleNext();
+    handleNext(values);
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <ShowError error={errorMessage} setError={setErrorMessage} />
         <FormField
           control={form.control}
           name="username"
@@ -39,14 +41,14 @@ export function CreateUsernameForm({ handleNext }: ICreateUsernameForm) {
                 <FormLabel className="text-lg">Create a unique username</FormLabel>
                 <FormDescription>You can use your name or nickname.</FormDescription>
               </div>
-              <FormControl className="mt-2">
+              <FormControl>
                 <Input placeholder="Enter username" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" loadingText="Please wait..." isLoading={isLoading}>
           Continue
         </Button>
       </form>

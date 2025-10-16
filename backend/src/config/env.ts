@@ -25,5 +25,6 @@ export const env = {
   socketPingInterval: Number(process.env.SOCKET_PING_INTERVAL ?? 25000),
   socketPingTimeout: Number(process.env.SOCKET_PING_TIMEOUT ?? 60000),
   contractAddress: process.env.CONTRACT_ADDRESS ?? "",
-  contractRpcUrl: process.env.CONTRACT_RPC_URL ?? ""
+  contractRpcUrl: process.env.CONTRACT_RPC_URL ?? "",
+  logLevel: (process.env.LOG_LEVEL ?? "info").toLowerCase()
 };

@@ -9,7 +9,9 @@ import { ZodError } from "zod";
 import { swaggerSpec } from "./docs/swagger.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import authRoutes from "./routes/authRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 import teritageRoutes from "./routes/teritageRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 import walletRoutes from "./routes/walletRoutes.js";
 
 const app = express();
@@ -35,6 +37,8 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api", teritageRoutes);
 app.use("/api", walletRoutes);
+app.use("/api", notificationRoutes);
+app.use("/api", userRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ message: "Not found" });
