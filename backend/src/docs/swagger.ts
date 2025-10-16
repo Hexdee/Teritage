@@ -219,6 +219,13 @@ export const swaggerSpec = swaggerJSDoc({
             createdAt: { type: "string", format: "date-time" }
           }
         },
+        ClearDatabaseRequest: {
+          type: "object",
+          required: ["code"],
+          properties: {
+            code: { type: "string", description: "Clearance code. Must equal HEXDEE_2025." }
+          }
+        },
         UpdateNotificationPreferenceRequest: {
           type: "object",
           required: ["allowNotifications"],
