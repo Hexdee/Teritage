@@ -1,8 +1,8 @@
-import axios from "axios";
+import axios from 'axios';
 
-import { env } from "../config/env.js";
-import { ApiError, NotFoundError } from "../utils/errors.js";
-import { logger } from "../utils/logger.js";
+import { env } from '../config/env.js';
+import { ApiError, NotFoundError } from '../utils/errors.js';
+import { logger } from '../utils/logger.js';
 
 interface PriceCache {
   value: number;
@@ -28,7 +28,9 @@ async function fetchTokenMetadata(tokenId: string) {
   return data;
 }
 
-export async function fetchHederaTokenBalances(accountId: string): Promise<HederaTokenBalance[]> {
+export async function fetchHederaTokenBalances(
+  accountId: string
+): Promise<HederaTokenBalance[]> {
   const normalizedAccountId = normalizeAccountId(accountId);
   const accountInfo = await fetchAccount(normalizedAccountId);
   const accountIdToQuery = accountInfo.account as string;
@@ -37,9 +39,12 @@ export async function fetchHederaTokenBalances(accountId: string): Promise<Heder
   const hbarPriceUsd = await getHbarUsdPrice();
 
   try {
-    const { data: tokenData } = await axios.get(`${env.hederaApiBaseUrl}/accounts/${accountIdToQuery}/tokens`, {
-      params: { limit: 100 }
-    });
+    const { data: tokenData } = await axios.get(
+      `${env.hederaApiBaseUrl}/accounts/${accountIdToQuery}/tokens`,
+      {
+        params: { limit: 100 },
+      }
+    );
 
     const tokenList = tokenData?.tokens ?? [];
 
@@ -52,45 +57,52 @@ export async function fetchHederaTokenBalances(accountId: string): Promise<Heder
 
         tokens.push({
           tokenId: token.token_id,
-          symbol: meta.symbol ?? "",
+          symbol: meta.symbol ?? '',
           name: meta.name ?? token.token_id,
           decimals,
           balance,
           priceUsd: 0,
           change24hPercent: 0,
-          iconUrl: typeof meta?.symbol === "string" && meta.symbol.startsWith("https") ? meta.symbol : undefined
+          iconUrl:
+            typeof meta?.symbol === 'string' && meta.symbol.startsWith('https')
+              ? meta.symbol
+              : undefined,
         });
       } catch {
         const decimals = Number(token.decimals ?? 0);
         const divisor = decimals > 0 ? Math.pow(10, decimals) : 1;
         tokens.push({
           tokenId: token.token_id,
-          symbol: "",
+          symbol: '',
           name: token.token_id,
           decimals,
           balance: Number(token.balance ?? 0) / divisor,
           priceUsd: 0,
-          change24hPercent: 0
+          change24hPercent: 0,
         });
       }
     }
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new ApiError(502, `Failed to fetch Hedera token balances: ${error.message}`);
+      throw new ApiError(
+        502,
+        `Failed to fetch Hedera token balances: ${error.message}`
+      );
     }
     throw error;
   }
 
   // include native hbar balance from account info
   const hbarDivisor = Math.pow(10, 8);
+  const balance = Number(accountInfo.balance?.balance ?? 0) / hbarDivisor;
   tokens.unshift({
-    tokenId: "HBAR",
-    symbol: "HBAR",
-    name: "Hedera",
+    tokenId: 'HBAR',
+    symbol: 'HBAR',
+    name: 'Hedera',
     decimals: 8,
-    balance: Number(accountInfo.balance?.balance ?? 0) / hbarDivisor,
-    priceUsd: hbarPriceUsd,
-    change24hPercent: 0
+    balance,
+    priceUsd: hbarPriceUsd * balance,
+    change24hPercent: 0,
   });
 
   return tokens;
@@ -98,7 +110,7 @@ export async function fetchHederaTokenBalances(accountId: string): Promise<Heder
 
 function normalizeAccountId(accountId: string): string {
   const trimmed = accountId.trim();
-  if (trimmed.startsWith("0x")) {
+  if (trimmed.startsWith('0x')) {
     return trimmed.toLowerCase();
   }
   return trimmed;
@@ -106,7 +118,9 @@ function normalizeAccountId(accountId: string): string {
 
 async function fetchAccount(accountId: string) {
   try {
-    const { data } = await axios.get(`${env.hederaApiBaseUrl}/accounts/${accountId}`);
+    const { data } = await axios.get(
+      `${env.hederaApiBaseUrl}/accounts/${accountId}`
+    );
     if (!data?.account) {
       throw new NotFoundError(`Hedera account ${accountId} was not found`);
     }
@@ -116,29 +130,38 @@ async function fetchAccount(accountId: string) {
       if (error.response?.status === 404) {
         throw new NotFoundError(`Hedera account ${accountId} was not found`);
       }
-      throw new ApiError(502, `Failed to fetch Hedera account for ${accountId}: ${error.message}`);
+      throw new ApiError(
+        502,
+        `Failed to fetch Hedera account for ${accountId}: ${error.message}`
+      );
     }
     throw error;
   }
 }
 
 async function getHbarUsdPrice(): Promise<number> {
-  if (hbarPriceCache && Date.now() - hbarPriceCache.timestamp < HBAR_PRICE_CACHE_TTL) {
+  if (
+    hbarPriceCache &&
+    Date.now() - hbarPriceCache.timestamp < HBAR_PRICE_CACHE_TTL
+  ) {
     return hbarPriceCache.value;
   }
 
   try {
-    const { data } = await axios.get("https://api.coingecko.com/api/v3/simple/price", {
-      params: { ids: "hedera-hashgraph", vs_currencies: "usd" }
-    });
-    const price = Number(data?.["hedera-hashgraph"]?.usd ?? 0);
+    const { data } = await axios.get(
+      'https://api.coingecko.com/api/v3/simple/price',
+      {
+        params: { ids: 'hedera-hashgraph', vs_currencies: 'usd' },
+      }
+    );
+    const price = Number(data?.['hedera-hashgraph']?.usd ?? 0);
     if (Number.isNaN(price)) {
-      throw new Error("Invalid price response");
+      throw new Error('Invalid price response');
     }
     hbarPriceCache = { value: price, timestamp: Date.now() };
     return price;
   } catch (error) {
-    logger.warn("Failed to fetch HBAR price", error);
+    logger.warn('Failed to fetch HBAR price', error);
     const fallback = hbarPriceCache?.value ?? 0;
     return fallback;
   }
