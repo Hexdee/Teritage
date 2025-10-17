@@ -16,7 +16,12 @@ const FormSchema = z.object({
   }),
 });
 
-export function CreateUsernameForm({ handleNext, errorMessage, setErrorMessage, isLoading }: ICreateUsernameForm) {
+export function CreateUsernameForm({
+  handleNext,
+  errorMessage = null,
+  setErrorMessage,
+  isLoading = false,
+}: ICreateUsernameForm) {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -31,7 +36,7 @@ export function CreateUsernameForm({ handleNext, errorMessage, setErrorMessage, 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <ShowError error={errorMessage} setError={setErrorMessage} />
+        <ShowError error={errorMessage ?? null} setError={setErrorMessage} />
         <FormField
           control={form.control}
           name="username"

@@ -5,9 +5,9 @@ export interface ISelectedWallet {
 
 export interface ICreateUsernameForm {
   handleNext: (arg: { username: string }) => void;
-  errorMessage: string | null;
-  setErrorMessage: (arg: string | null) => void;
-  isLoading: boolean;
+  errorMessage?: string | null;
+  setErrorMessage?: (arg: string | null) => void;
+  isLoading?: boolean;
 }
 
 export interface INextPage {
