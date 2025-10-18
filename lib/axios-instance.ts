@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { CONNECT_WALLET_URL } from '@/config/path';
+import { LOGIN_URL } from '@/config/path';
 import axios from 'axios';
 import { getCookie } from 'cookies-next';
 
@@ -34,7 +34,7 @@ client.interceptors.response.use(
 
     if (error?.response && error?.response?.status === 401 && !originalConfig._retry) {
       originalConfig._retry = true;
-      window.location.replace(CONNECT_WALLET_URL);
+      window.location.replace(LOGIN_URL);
       // Call refresh token
       try {
         return client(originalConfig);

@@ -9,6 +9,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { ICreateUsernameForm } from '@/type';
 import ShowError from '../errors/display-error';
+import { useApplications } from '@/context/dashboard-provider';
 
 const FormSchema = z.object({
   username: z.string().min(2, {
@@ -16,16 +17,12 @@ const FormSchema = z.object({
   }),
 });
 
-export function CreateUsernameForm({
-  handleNext,
-  errorMessage = null,
-  setErrorMessage,
-  isLoading = false,
-}: ICreateUsernameForm) {
+export function CreateUsernameForm({ handleNext, errorMessage, setErrorMessage, isLoading }: ICreateUsernameForm) {
+  const { userProfile } = useApplications();
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      username: '',
+      username: userProfile?.username || '',
     },
   });
 

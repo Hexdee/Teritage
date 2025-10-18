@@ -16,8 +16,7 @@ import { columns } from './columns';
 const formatChangeLabel = (value: number) =>
   `${value > 0 ? '+' : ''}${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(value);
+const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(value);
 
 export default function Wallet() {
   const [showBalance, setShowBalance] = useState<boolean>(false);

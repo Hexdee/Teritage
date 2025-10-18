@@ -1,21 +1,18 @@
 'use client';
 import { NotificationIcon } from '@/components/icons';
-import { ModeToggle } from '@/components/themes/mode-toggle';
 import SearchInput from '@/components/ui/search-input';
 import { sidebar } from '@/config/constants';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ReactNode, useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import AddWalletContent from '@/components/wallets';
+import { ReactNode } from 'react';
 import { DashboardProvider } from '@/context/dashboard-provider';
 import { CustomConnectButton } from '@/components/ui/connect-button';
+import { UserCheckIn } from '@/components/check-in';
+import UserProfile from '@/components/profile-sheet';
 
 export default function Layout({ children }: { children: ReactNode }) {
-  const [currentStage, setCurrentStage] = useState<number>(0);
   const pathname = usePathname();
   const currentNavigation = sidebar.find((each) => pathname.startsWith(each.default));
 
@@ -53,9 +50,9 @@ export default function Layout({ children }: { children: ReactNode }) {
               </div>
               <div className="col-span-7 flex space-x-6 justify-end">
                 <SearchInput inputClassName="w-[300px]" />
-                <ModeToggle />
+                {/* <ModeToggle /> */}
 
-                <div className="flex items-center px-6 space-x-8">
+                <div className="flex items-center space-x-4">
                   <div className="w-px h-6 bg-border" />
                   <div className="space-x-2 flex items-center">
                     <div className="w-2 h-2 bg-destructive rounded-full" />
@@ -66,20 +63,9 @@ export default function Layout({ children }: { children: ReactNode }) {
 
                 <CustomConnectButton />
 
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <div className="text-inverse flex space-x-2 items-center cursor-pointer" role="button">
-                      <Avatar>
-                        <AvatarImage src="https://github.com/shadcn.png" />
-                        <AvatarFallback>CN</AvatarFallback>
-                      </Avatar>
-                      <p className="font-medium">Mayor</p>
-                    </div>
-                  </SheetTrigger>
-                  <SheetContent>
-                    <AddWalletContent setCurrentStage={setCurrentStage} currentStage={currentStage} />
-                  </SheetContent>
-                </Sheet>
+                <UserCheckIn />
+
+                <UserProfile />
               </div>
             </div>
             <div className="space-y-8 px-8">{children}</div>

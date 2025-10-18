@@ -11,10 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Info, Plus, Trash } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useRouter } from 'next/navigation';
-import { BENEFICIARY_INFO_URL } from '@/config/path';
 import { Separator } from '../ui/separator';
 import { useInheritancePlanStore } from '@/store/useInheritancePlanStore';
+import { INextPage } from '@/type';
 
 const formSchema = z.object({
   checkInIntervalSeconds: z.string().min(1, 'Please select a check-in period'),
@@ -29,9 +28,8 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export default function SetUpInheritanceForm() {
+export default function SetUpInheritanceForm({ handleNext }: INextPage) {
   const [openTooltip, setOpenTooltip] = React.useState<boolean>(false);
-  const router = useRouter();
   const { checkInIntervalSeconds, socialLinks, setCheckInData } = useInheritancePlanStore();
 
   const form = useForm<FormValues>({
@@ -56,7 +54,7 @@ export default function SetUpInheritanceForm() {
       socialLinks: sanitizedLinks.length ? sanitizedLinks : [{ url: '' }],
     });
 
-    router.push(BENEFICIARY_INFO_URL);
+    handleNext();
   }
 
   return (

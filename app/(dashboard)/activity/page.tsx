@@ -1,5 +1,4 @@
 'use client';
-
 import DataTable from '@/components/ui/data-table';
 import { DashboardSkeleton } from '@/components/ui/loading';
 import EmptyState from '@/components/ui/empty-state';
@@ -77,6 +76,8 @@ export default function ActivityPage() {
         };
     }
   });
+
+  console.log({ data });
 
   return (
     <div className="text-inverse">
