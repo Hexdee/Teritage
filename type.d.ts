@@ -11,11 +11,12 @@ export interface ICreateUsernameForm {
 }
 
 export interface INextPage {
-  handleNext: () => void;
+  handleNext: (arg?: BeneficiaryEntry) => void;
   className?: string;
   isLoading?: boolean;
   newBeneficiary?: boolean;
-  handleNext2?: (arg: BeneficiaryEntry) => void;
+  // handleNext2?: (arg: BeneficiaryEntry) => void;
+  hasFormat?: boolean;
 }
 
 export interface ISelectWalletNextPage {

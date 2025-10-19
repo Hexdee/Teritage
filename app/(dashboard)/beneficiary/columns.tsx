@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { ReactNode, useState } from 'react';
@@ -128,7 +127,7 @@ export const ActionCell = ({ data }: ActionCellProps) => {
       />
     ),
     2: <ManageAllocation beneficiary={data} totalValue={totalValue} setCurrentStage={setCurrentStage} />,
-    3: <BeneficiaryInfoForm handleNext={() => console.log()} handleNext2={handleMutatePlan} isLoading={isPending} newBeneficiary={false} />,
+    3: <BeneficiaryInfoForm handleNext={handleMutatePlan} hasFormat isLoading={isPending} newBeneficiary={false} />,
   };
 
   return (
