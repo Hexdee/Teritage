@@ -16,7 +16,7 @@ export default function Beneficiary() {
 
   if (isTeritageError) {
     const message =
-      (teritageError as any)?.response?.data?.message ?? (teritageError instanceof Error ? teritageError.message : 'Unable to load beneficiaries');
+      (teritageError as any)?.response?.data?.message ?? (teritageError instanceof Error ? teritageError?.message : 'Unable to load beneficiaries');
     return (
       <div className="h-[70vh] flex items-center px-20">
         <div className="w-full space-y-6">
@@ -28,8 +28,6 @@ export default function Beneficiary() {
   }
 
   const inheritors = teritageData?.plan?.inheritors ?? [];
-
-  console.log({ teritageData });
 
   if (!inheritors.length) {
     return (
@@ -48,10 +46,6 @@ export default function Beneficiary() {
     email: beneficiary.email ?? '',
     phone: beneficiary.phone ?? '',
   }));
-
-  // const { teritageData, isLoadingTeritage, isTeritageError, teritageError } = useApplications();
-
-  console.log({ teritageData });
 
   return (
     <div className="text-inverse">

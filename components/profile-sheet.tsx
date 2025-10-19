@@ -4,9 +4,11 @@ import { useApplications } from '@/context/dashboard-provider';
 import AddWalletContent from './wallets';
 import { Loader } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 export default function UserProfile({ className }: { className?: string }) {
   const { openSheet, setOpenSheet, isLoadingWalletsToken, userProfile } = useApplications();
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
   return (
     <>
@@ -24,7 +26,7 @@ export default function UserProfile({ className }: { className?: string }) {
               <p className="font-medium capitalize truncate">{userProfile?.username || userProfile?.name}</p>
             </div>
           </SheetTrigger>
-          <SheetContent>
+          <SheetContent side={isDesktop ? 'right' : 'bottom'} className="pb-4">
             <AddWalletContent />
           </SheetContent>
         </Sheet>

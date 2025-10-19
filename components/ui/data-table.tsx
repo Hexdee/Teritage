@@ -15,17 +15,7 @@ interface DataTableProps {
   tableTitle?: string;
 }
 
-const DataTable = ({
-  columns,
-  data,
-  //   className,
-  //   pageSize,
-  //   dataLength,
-  handleClickRow,
-  headerClassName,
-  tableTitle,
-}: //   handleChangePageSize,
-DataTableProps) => {
+const DataTable = ({ columns, data, handleClickRow, headerClassName, tableTitle }: DataTableProps) => {
   const table = useReactTable({
     data,
     columns,

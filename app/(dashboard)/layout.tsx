@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { DashboardProvider } from '@/context/dashboard-provider';
 import { CustomConnectButton } from '@/components/ui/connect-button';
 import { UserCheckIn } from '@/components/check-in';
@@ -17,13 +17,14 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
 
 export default function Layout({ children }: { children: ReactNode }) {
+  const [openSheet, setOpenSheet] = useState<boolean>(false);
   const pathname = usePathname();
   const currentNavigation = sidebar.find((each) => pathname.startsWith(each.default));
 
   return (
     <DashboardProvider>
       <div className="h-screen">
-        <div className="grid lg:grid-cols-10 h-full">
+        <div className="grid lg:grid-cols-10 lg:h-full space-y-4">
           {/* Sidebar - visible only on large screens */}
           <nav className="hidden lg:block col-span-2 border-r space-y-8">
             <div className="flex justify-between border-b h-20 px-8 items-center">
@@ -79,7 +80,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                   <CustomConnectButton />
                 </PopoverContent>
               </Popover>
-              <Sheet>
+              <Sheet open={openSheet} onOpenChange={setOpenSheet}>
                 <SheetTrigger asChild>
                   <button>
                     <Menu />
@@ -98,6 +99,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                             'flex space-x-4 text-muted py-3 hover:text-inverse px-4 rounded-lg mt-4',
                             pathname.startsWith(each.default) && 'bg-card text-inverse'
                           )}
+                          onClick={() => setOpenSheet(false)}
                         >
                           {each.icon}
                           <p>{each.title}</p>

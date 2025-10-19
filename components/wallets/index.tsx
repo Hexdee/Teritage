@@ -25,6 +25,7 @@ export default function AddWalletContent() {
   const { setCurrentStage, currentStage, openSheet, setOpenSheet, teritageData } = useApplications();
   const [currentWallet, setCurrentWallet] = useState<WalletToken | null>(null);
   const [usernameError, setUsernameError] = useState<string | null>(null);
+  const [previousStage, setPreviousStage] = useState(0);
 
   const showHeader = ![4, 5].includes(currentStage);
 
@@ -71,8 +72,10 @@ export default function AddWalletContent() {
   };
 
   const handleBack = () => {
-    setCurrentStage(currentStage === 8 ? currentStage - 2 : currentStage - 1);
+    setCurrentStage(currentStage === 6 ? 0 : previousStage);
   };
+
+  console.log(previousStage);
 
   useEffect(() => {
     if (!openSheet) {
@@ -114,6 +117,11 @@ export default function AddWalletContent() {
   //   8: <BeneficiaryInfoForm handleNext={() => setCurrentStage(6)} />,
   // };
 
+  const handleNext = (stage: number, previous: number) => {
+    setCurrentStage(stage);
+    setPreviousStage(previous);
+  };
+
   const EachStage: Record<number, ReactNode> = {
     0: (
       <SelectWallet
@@ -121,22 +129,32 @@ export default function AddWalletContent() {
         handleViewWallet={(token) => {
           setCurrentWallet(token);
           setCurrentStage(6);
+          setPreviousStage(0);
         }}
       />
     ),
-    1: <Introduction handleNext={() => setCurrentStage(2)} className="mt-2" />,
-    2: <SetUpInheritanceForm handleNext={() => setCurrentStage(3)} />,
-    3: <BeneficiaryInfoForm handleNext={() => setCurrentStage(4)} />,
-    4: <TokenAllocation handleNext={() => setCurrentStage(5)} />,
+    1: <Introduction handleNext={() => handleNext(2, 1)} className="mt-2" />,
+    2: <SetUpInheritanceForm handleNext={() => handleNext(3, 2)} />,
+    3: <BeneficiaryInfoForm handleNext={() => handleNext(4, 3)} />,
+    4: <TokenAllocation handleNext={() => handleNext(5, 4)} />,
     5: (
       <WalletSuccessPage
         handleNext={() => {
           setOpenSheet(false);
           setCurrentStage(0);
+          setPreviousStage(5);
         }}
       />
     ),
-    6: <WalletSettings setCurrentStage={setCurrentStage} token={currentWallet} />,
+    6: (
+      <WalletSettings
+        setCurrentStage={(value) => {
+          setCurrentStage(value);
+          setPreviousStage(6);
+        }}
+        token={currentWallet}
+      />
+    ),
     7: <CreateUsernameForm handleNext={handleUsernameNext} errorMessage={usernameError} setErrorMessage={setUsernameError} isLoading={isPending} />,
     8: <BeneficiaryInfoForm handleNext2={handleMutatePlan} isLoading={isMutating} />,
 

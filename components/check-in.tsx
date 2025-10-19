@@ -16,8 +16,10 @@ import { TailSpinPreloader } from './icons/tail-spin-preloader';
 import { ICheckIn, IUserCheckIn } from '@/type';
 import { capitalizeFirstLetter } from '@/lib/utils';
 import { format } from 'date-fns';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 export function UserCheckIn({ buttonClassName }: { buttonClassName?: string }) {
+  const isDesktop = useMediaQuery('(min-width: 768px)');
   const queryClient: any = useQueryClient();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { userProfile } = useApplications();
@@ -62,7 +64,7 @@ export function UserCheckIn({ buttonClassName }: { buttonClassName?: string }) {
           Check-In
         </Button>
       </SheetTrigger>
-      <SheetContent className="overflow-y-auto">
+      <SheetContent className="overflow-y-auto pb-5" side={isDesktop ? 'right' : 'bottom'}>
         <SheetHeader>
           <SheetTitle>Check-In</SheetTitle>
           <Separator />
@@ -106,7 +108,7 @@ export function UserCheckIn({ buttonClassName }: { buttonClassName?: string }) {
             {data && (
               <div className="space-y-4">
                 {data.checkIns.map((item: IUserCheckIn, index: number) => (
-                  <div key={index} className="flex items-center justify-between border-b border-zinc-800 pb-4">
+                  <div key={index} className="lg:flex items-center justify-between border-b border-zinc-800 pb-4">
                     <div className="flex items-start gap-3">
                       <div className="p-2 bg-zinc-800 rounded-full">
                         <CalendarDays className="text-muted-foreground" size={18} />
@@ -117,7 +119,7 @@ export function UserCheckIn({ buttonClassName }: { buttonClassName?: string }) {
                         <p className="text-sm text-muted-foreground">{format(new Date(item.timestamp), 'do MMMM, yyyy • h:mm a')}</p>
                       </div>
                     </div>
-                    <Button size="sm" startIcon={<CheckIcon />} className="bg-success/10 text-success/100">
+                    <Button size="sm" startIcon={<CheckIcon />} className="bg-success/10 text-success/100 ml-10 mt-2 lg:ml-0 lg:mt-0">
                       Successful
                     </Button>
                   </div>
