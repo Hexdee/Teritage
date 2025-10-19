@@ -25,7 +25,6 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     queryKey: [TERITAGES_KEY, isConnected],
     queryFn: () => getUserTeritageApi(),
     enabled: !!isConnected,
-    retry: 1,
   });
 
   const {

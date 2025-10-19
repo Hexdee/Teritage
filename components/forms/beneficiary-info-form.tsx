@@ -57,7 +57,7 @@ const DEFAULT_BENEFICIARY = {
   notifyBeneficiary: false,
 };
 
-export default function BeneficiaryInfoForm({ handleNext, handleNext2, isLoading, newBeneficiary = true }: INextPage) {
+export default function BeneficiaryInfoForm({ handleNext, hasFormat, isLoading, newBeneficiary = true }: INextPage) {
   const { beneficiaries, setBeneficiaries } = useInheritancePlanStore();
 
   const form = useForm({
@@ -101,13 +101,8 @@ export default function BeneficiaryInfoForm({ handleNext, handleNext2, isLoading
     }));
 
     setBeneficiaries(formatted);
-    if (handleNext2) {
-      handleNext2(formatted);
-    } else {
-      if (handleNext) {
-        handleNext();
-      }
-    }
+
+    handleNext(hasFormat ? formatted : undefined);
   }
 
   return (

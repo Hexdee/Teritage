@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { ReactNode, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
-import { EllipsisVertical } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AllocationBreakdown from '@/components/beneficiary/allocation-breakdown';
 import ManageAllocation from '@/components/beneficiary/manage-allocation';
@@ -18,6 +17,7 @@ import { toast } from 'sonner';
 import { UpdateTeritagePlanRequest } from '@/type';
 import { BeneficiaryEntry } from '@/store/useInheritancePlanStore';
 import { getAddress } from 'viem';
+import { Button } from '@/components/ui/button';
 
 export type BeneficiaryRow = {
   name: string;
@@ -127,14 +127,16 @@ export const ActionCell = ({ data }: ActionCellProps) => {
       />
     ),
     2: <ManageAllocation beneficiary={data} totalValue={totalValue} setCurrentStage={setCurrentStage} />,
-    3: <BeneficiaryInfoForm handleNext2={handleMutatePlan} isLoading={isPending} newBeneficiary={false} />,
+    3: <BeneficiaryInfoForm handleNext={handleMutatePlan} hasFormat isLoading={isPending} newBeneficiary={false} />,
   };
 
   return (
     <div className="flex justify-end">
       <Sheet>
         <SheetTrigger asChild>
-          <EllipsisVertical size={20} className="text-muted" />
+          <Button startIcon={<Eye size={16} />} size="sm" variant="secondary">
+            View
+          </Button>
         </SheetTrigger>
         <SheetContent className="overflow-y-auto">
           <SheetHeader>

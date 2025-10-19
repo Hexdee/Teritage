@@ -11,11 +11,12 @@ export interface ICreateUsernameForm {
 }
 
 export interface INextPage {
-  handleNext?: () => void;
+  handleNext: (arg?: BeneficiaryEntry) => void;
   className?: string;
   isLoading?: boolean;
   newBeneficiary?: boolean;
-  handleNext2?: (arg: BeneficiaryEntry) => void;
+  // handleNext2?: (arg: BeneficiaryEntry) => void;
+  hasFormat?: boolean;
 }
 
 export interface ISelectWalletNextPage {
@@ -84,14 +85,16 @@ export interface UserProfile {
 }
 
 export interface ICheckIn {
-  checkIns: {
-    id: string;
-    timestamp: string;
-    secondsSinceLast: number;
-    timelinessPercent: number;
-    triggeredBy: string;
-    note: string;
-  }[];
+  checkIns: IUserCheckIn[];
+}
+
+export interface IUserCheckIn {
+  id: string;
+  timestamp: string;
+  secondsSinceLast: number;
+  timelinessPercent: number;
+  triggeredBy: string;
+  note: string;
 }
 
 export interface UpdateUserProfileRequest {

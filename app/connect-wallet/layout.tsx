@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 export default function Layout({ children }: { children: ReactNode }) {
   const router = useRouter();
   return (
-    <div className="py-16 px-24 space-y-12">
+    <div className="lg:py-16 py-8 px-6 lg:px-24 space-y-12">
       <div className="flex justify-between items-center">
         <button onClick={() => router.back()}>
           <ChevronLeft size={20} className="text-inverse" />
@@ -31,7 +31,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             </div>
             <Separator />
           </CardHeader>
-          <CardContent className=" sm:max-w-md">{children}</CardContent>
+          <CardContent className="sm:max-w-md lg:min-w-md">{children}</CardContent>
         </Card>
       </div>
     </div>

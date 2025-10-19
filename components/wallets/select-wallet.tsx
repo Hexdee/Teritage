@@ -13,7 +13,7 @@ export const SelectWallet = ({ handleNext, handleViewWallet }: ISelectWalletNext
     <>
       {walletsTokenData && tokens.length === 0 && <EmptyState />}
       {walletsTokenData && tokens.length > 0 && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {tokens.map((token, index) => (
             <div
               className="p-1 border-2 border-primary rounded-md cursor-pointer hover:border-primary/95"

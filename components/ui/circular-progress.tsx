@@ -1,3 +1,4 @@
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { cn } from '@/lib/utils';
 import React from 'react';
 
@@ -8,7 +9,10 @@ type CircularProgressProps = {
   textClassName?: string;
 };
 
-export function CircularProgress({ value, size = 180, strokeWidth = 14, textClassName }: CircularProgressProps) {
+export function CircularProgress({ value, textClassName }: CircularProgressProps) {
+  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const size = isDesktop ? 180 : 80;
+  const strokeWidth = isDesktop ? 14 : 8;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (value / 100) * circumference;
@@ -47,7 +51,7 @@ export function CircularProgress({ value, size = 180, strokeWidth = 14, textClas
         </defs>
       </svg>
       {/* Center Text */}
-      <span className={cn('absolute text-inverse text-4xl font-medium', textClassName)}>{value}%</span>
+      <span className={cn('absolute text-inverse text-base lg:text-4xl font-medium', textClassName)}>{value}%</span>
     </div>
   );
 }
