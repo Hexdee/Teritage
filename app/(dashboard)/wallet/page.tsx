@@ -119,7 +119,7 @@ export default function Wallet() {
           </div>
         </div>
 
-        <div className="border rounded-xl p-4 space-y-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="border rounded-xl p-4 space-y-4 grid grid-cols-2 sm:grid-cols-2 gap-4">
           <div className="space-y-4">
             <div className="flex space-x-2 text-muted-foreground items-center">
               <p>Unassigned Balance</p>

@@ -139,7 +139,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 
             <div className="space-y-8 px-4 lg:px-8">{children}</div>
           </div>
-          <div className="space-y-8 px-4 lg:px-8 lg:hidden block">{children}</div>
+          <div className="space-y-8 px-4 lg:px-8 lg:hidden block w-full overflow-x-auto">{children}</div>
         </div>
       </div>
     </DashboardProvider>
