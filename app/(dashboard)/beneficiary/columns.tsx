@@ -4,7 +4,7 @@
 import { ReactNode, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
-import { EllipsisVertical, Eye } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AllocationBreakdown from '@/components/beneficiary/allocation-breakdown';
 import ManageAllocation from '@/components/beneficiary/manage-allocation';
@@ -128,7 +128,7 @@ export const ActionCell = ({ data }: ActionCellProps) => {
       />
     ),
     2: <ManageAllocation beneficiary={data} totalValue={totalValue} setCurrentStage={setCurrentStage} />,
-    3: <BeneficiaryInfoForm handleNext2={handleMutatePlan} isLoading={isPending} newBeneficiary={false} />,
+    3: <BeneficiaryInfoForm handleNext={() => console.log()} handleNext2={handleMutatePlan} isLoading={isPending} newBeneficiary={false} />,
   };
 
   return (

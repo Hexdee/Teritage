@@ -1,7 +1,9 @@
 import { clsx, type ClassValue } from 'clsx';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { deleteCookie } from 'cookies-next';
 import { twMerge } from 'tailwind-merge';
+import { STORAGE_KEY } from '@/config/key';
+import { LOGIN_URL } from '@/config/path';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -60,4 +62,10 @@ export const capitalizeFirstLetter = (str: string) => {
   const capitalized = str && str.charAt(0).toUpperCase() + str.slice(1);
 
   return capitalized;
+};
+
+export const handleLogout = () => {
+  deleteCookie('user_token');
+  localStorage.removeItem(STORAGE_KEY);
+  window.location.href = LOGIN_URL;
 };

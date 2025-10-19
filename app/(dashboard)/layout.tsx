@@ -2,7 +2,7 @@
 import { NotificationIcon } from '@/components/icons';
 import SearchInput from '@/components/ui/search-input';
 import { sidebar } from '@/config/constants';
-import { cn } from '@/lib/utils';
+import { cn, handleLogout } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -14,7 +14,8 @@ import UserProfile, { UserProfileImage } from '@/components/profile-sheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu } from 'lucide-react';
+import { LogOut, Menu } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function Layout({ children }: { children: ReactNode }) {
   const [openSheet, setOpenSheet] = useState<boolean>(false);
@@ -26,7 +27,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <div className="h-screen">
         <div className="grid lg:grid-cols-10 lg:h-full space-y-4">
           {/* Sidebar - visible only on large screens */}
-          <nav className="hidden lg:block col-span-2 border-r space-y-8">
+          <nav className="hidden lg:block col-span-2 border-r space-y-8 h-full relative">
             <div className="flex justify-between border-b h-20 px-8 items-center">
               <div className="flex space-x-2 items-center text-inverse">
                 <Image src="/logo.png" width={32} height={34} alt="logo" />
@@ -48,6 +49,15 @@ export default function Layout({ children }: { children: ReactNode }) {
                   </div>
                 </Link>
               ))}
+            </div>
+
+            <div
+              className="lg:flex space-x-2 hidden pl-14 cursor-pointer items-center text-destructive absolute bottom-10"
+              role="button"
+              onClick={handleLogout}
+            >
+              <LogOut size={20} />
+              <p>Logout</p>
             </div>
           </nav>
 
@@ -78,6 +88,9 @@ export default function Layout({ children }: { children: ReactNode }) {
                   <UserProfile className="bg-primary-foreground text-muted-foreground h-12 px-4 py-2 rounded-md" />
                   <UserCheckIn buttonClassName="w-full flex justify-start" />
                   <CustomConnectButton />
+                  <Button startIcon={<LogOut size={18} />} onClick={handleLogout} variant="secondary" className="w-full flex justify-start">
+                    Logout
+                  </Button>
                 </PopoverContent>
               </Popover>
               <Sheet open={openSheet} onOpenChange={setOpenSheet}>

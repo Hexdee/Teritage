@@ -156,7 +156,7 @@ export default function AddWalletContent() {
       />
     ),
     7: <CreateUsernameForm handleNext={handleUsernameNext} errorMessage={usernameError} setErrorMessage={setUsernameError} isLoading={isPending} />,
-    8: <BeneficiaryInfoForm handleNext2={handleMutatePlan} isLoading={isMutating} />,
+    8: <BeneficiaryInfoForm handleNext={() => console.log()} handleNext2={handleMutatePlan} isLoading={isMutating} />,
 
     // 2: (
     //   <ConfirmWalletSelection

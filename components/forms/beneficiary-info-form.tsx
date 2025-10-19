@@ -104,9 +104,7 @@ export default function BeneficiaryInfoForm({ handleNext, handleNext2, isLoading
     if (handleNext2) {
       handleNext2(formatted);
     } else {
-      if (handleNext) {
-        handleNext();
-      }
+      handleNext();
     }
   }
 
