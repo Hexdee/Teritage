@@ -22,11 +22,20 @@ export const userSignUp = (payload: { email: string }): Promise<ApiResponse> =>
 export const userLogin = (payload: { email: string; password: string }): Promise<ApiResponse> =>
   client.post('/auth/signin', payload).then((response) => response.data);
 
+export const userForgotPassword = (payload: { email: string }): Promise<ApiResponse> =>
+  client.post('/auth/password/forgot', payload).then((response) => response.data);
+
+export const userForgotPasswordVerify = (payload: { email: string; code: string }): Promise<ApiResponse> =>
+  client.post('/auth/password/verify', payload).then((response) => response.data);
+
 export const userSignUpVerify = (payload: { email: string; code: string }): Promise<ApiResponse> =>
   client.post('/auth/signup/verify', payload).then((response) => response.data);
 
 export const userSetPassword = (payload: { email: string; password: string; verificationToken: string }): Promise<ApiResponse> =>
   client.post('/auth/signup/set-password', payload).then((response) => response.data);
+
+export const userResetPassword = (payload: { email: string; password: string; verificationToken: string }): Promise<ApiResponse> =>
+  client.post('/auth/password/reset', payload).then((response) => response.data);
 
 export const userSetUsername = (payload: { username: string }): Promise<ApiResponse> =>
   client.post('/auth/username', payload).then((response) => response.data);

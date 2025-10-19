@@ -16,7 +16,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   const hasBack = typeof window !== 'undefined' && window.history.length > 1;
 
   return (
-    <div className="py-16 px-24">
+    <div className="lg:py-16 py-8 px-6 lg:px-24 space-y-4 lg:space-y-0">
       {hasBack && (
         <button onClick={() => router.back()}>
           <ChevronLeft size={20} className="text-inverse cursor-pointer" />
@@ -44,7 +44,7 @@ export default function Layout({ children }: { children: ReactNode }) {
               {/* <CloseIcon /> */}
             </div>
           </CardHeader>
-          <CardContent className="sm:max-w-md min-w-md">{children}</CardContent>
+          <CardContent className="sm:max-w-md lg:min-w-md">{children}</CardContent>
         </Card>
       </div>
     </div>
