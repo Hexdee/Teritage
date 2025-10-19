@@ -84,14 +84,16 @@ export interface UserProfile {
 }
 
 export interface ICheckIn {
-  checkIns: {
-    id: string;
-    timestamp: string;
-    secondsSinceLast: number;
-    timelinessPercent: number;
-    triggeredBy: string;
-    note: string;
-  }[];
+  checkIns: IUserCheckIn[];
+}
+
+export interface IUserCheckIn {
+  id: string;
+  timestamp: string;
+  secondsSinceLast: number;
+  timelinessPercent: number;
+  triggeredBy: string;
+  note: string;
 }
 
 export interface UpdateUserProfileRequest {

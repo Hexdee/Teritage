@@ -5,7 +5,7 @@ import { Button } from './button';
 export const CustomConnectButton = () => {
   return (
     <ConnectButton.Custom>
-      {({ account, chain, openAccountModal, openChainModal, openConnectModal, authenticationStatus, mounted }) => {
+      {({ account, chain, openAccountModal, openChainModal, openConnectModal, authenticationStatus, mounted }: any) => {
         // Note: If your app doesn't use authentication, you
         // can remove all 'authenticationStatus' checks
         const ready = mounted && authenticationStatus !== 'loading';
@@ -37,7 +37,7 @@ export const CustomConnectButton = () => {
                 );
               }
               return (
-                <div style={{ display: 'flex', gap: 12 }}>
+                <div className="lg:flex block gap-12 space-y-2.5">
                   <Button onClick={openChainModal} style={{ display: 'flex', alignItems: 'center' }} type="button">
                     <>
                       {chain.hasIcon && (

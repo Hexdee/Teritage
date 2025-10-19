@@ -10,7 +10,7 @@ import { CustomConnectButton } from '@/components/ui/connect-button';
 export default function Layout({ children }: { children: ReactNode }) {
   const router = useRouter();
   return (
-    <div className="py-12 px-24 space-y-12 fixed w-full">
+    <div className="py-8 px-6 lg:py-12 lg:px-24 space-y-12 fixed w-full">
       <div className="flex justify-between items-center">
         <button onClick={() => router.back()}>
           <ChevronLeft size={20} className="text-inverse" />

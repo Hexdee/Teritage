@@ -13,11 +13,11 @@ import { useState } from 'react';
 import { useApplications } from '@/context/dashboard-provider';
 import { AxiosError } from 'axios';
 import { TailSpinPreloader } from './icons/tail-spin-preloader';
-import { ICheckIn } from '@/type';
+import { ICheckIn, IUserCheckIn } from '@/type';
 import { capitalizeFirstLetter } from '@/lib/utils';
 import { format } from 'date-fns';
 
-export function UserCheckIn() {
+export function UserCheckIn({ buttonClassName }: { buttonClassName?: string }) {
   const queryClient: any = useQueryClient();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { userProfile } = useApplications();
@@ -57,8 +57,8 @@ export function UserCheckIn() {
 
   return (
     <Sheet>
-      <SheetTrigger>
-        <Button variant="secondary" startIcon={<HealthIcon className="text-[#F2F2F2]" />}>
+      <SheetTrigger className="w-full">
+        <Button variant="secondary" startIcon={<HealthIcon className="text-[#F2F2F2]" />} className={buttonClassName}>
           Check-In
         </Button>
       </SheetTrigger>
@@ -105,7 +105,7 @@ export function UserCheckIn() {
             {isError && <p className="text-destructive texsm">{error?.message || 'An error occured while processing'}</p>}
             {data && (
               <div className="space-y-4">
-                {data.checkIns.map((item, index) => (
+                {data.checkIns.map((item: IUserCheckIn, index: number) => (
                   <div key={index} className="flex items-center justify-between border-b border-zinc-800 pb-4">
                     <div className="flex items-start gap-3">
                       <div className="p-2 bg-zinc-800 rounded-full">
