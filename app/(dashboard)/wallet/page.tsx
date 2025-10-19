@@ -16,8 +16,7 @@ import { columns } from './columns';
 const formatChangeLabel = (value: number) =>
   `${value > 0 ? '+' : ''}${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(value);
+const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(value);
 
 export default function Wallet() {
   const [showBalance, setShowBalance] = useState<boolean>(false);
@@ -120,7 +119,7 @@ export default function Wallet() {
           </div>
         </div>
 
-        <div className="border rounded-xl p-4 space-y-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="border rounded-xl p-4 space-y-4 grid grid-cols-2 sm:grid-cols-2 gap-4">
           <div className="space-y-4">
             <div className="flex space-x-2 text-muted-foreground items-center">
               <p>Unassigned Balance</p>

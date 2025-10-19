@@ -9,7 +9,17 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { CopyIcon, DeleteIconRounded } from '@/components/icons';
 import EmptyState from '@/components/ui/empty-state';
 import { DashboardSkeleton } from '@/components/ui/loading';
@@ -40,7 +50,8 @@ export default function ManageWalletsSettings() {
   }
 
   if (isUserProfileError) {
-    const message = (userProfileError as any)?.response?.data?.message ?? (userProfileError instanceof Error ? userProfileError.message : 'Unable to load wallets');
+    const message =
+      (userProfileError as any)?.response?.data?.message ?? (userProfileError instanceof Error ? userProfileError.message : 'Unable to load wallets');
     return (
       <div className="h-[70vh] flex items-center px-20">
         <div className="w-full space-y-6">
@@ -106,7 +117,7 @@ export default function ManageWalletsSettings() {
         <h1 className="font-medium text-xl">Manage Wallets</h1>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button startIcon={<Plus size={16} />} variant="secondary">
+            <Button startIcon={<Plus size={16} />} variant="secondary" className="w-fit">
               Add Wallet
             </Button>
           </DialogTrigger>
@@ -116,12 +127,7 @@ export default function ManageWalletsSettings() {
               <DialogDescription>Link another EVM wallet address to your Teritage account.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <Input
-                placeholder="0x..."
-                value={newAddress}
-                onChange={(event) => setNewAddress(event.target.value)}
-                autoFocus
-              />
+              <Input placeholder="0x..." value={newAddress} onChange={(event) => setNewAddress(event.target.value)} autoFocus />
               <Button onClick={handleAddWallet} isLoading={isPending} loadingText="Saving...">
                 Save wallet
               </Button>

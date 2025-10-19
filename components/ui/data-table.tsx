@@ -15,17 +15,7 @@ interface DataTableProps {
   tableTitle?: string;
 }
 
-const DataTable = ({
-  columns,
-  data,
-  //   className,
-  //   pageSize,
-  //   dataLength,
-  handleClickRow,
-  headerClassName,
-  tableTitle,
-}: //   handleChangePageSize,
-DataTableProps) => {
+const DataTable = ({ columns, data, handleClickRow, headerClassName, tableTitle }: DataTableProps) => {
   const table = useReactTable({
     data,
     columns,
@@ -43,7 +33,7 @@ DataTableProps) => {
           </div>
         )}
         {table.getHeaderGroups().map((headerGroup) => (
-          <TableRow key={headerGroup.id} className="dark:hover:bg-[#191919] hover:bg-white dark:border-b-[#292929] border-b-[#CCCCCC99] border-b w-full">
+          <TableRow key={headerGroup.id} className="dark:hover:bg-[#191919] hover:bg-[#191919] dark:border-b-[#292929] border-b-[#CCCCCC99] border-b w-full">
             {headerGroup.headers.map((header) => {
               return (
                 <TableHead key={header.id} className={cn(headerClassName, 'py-5 text-[#888888] text-sm font-light')}>
@@ -61,7 +51,7 @@ DataTableProps) => {
               key={row.id}
               data-state={row.getIsSelected() && 'selected'}
               onClick={() => (handleClickRow ? handleClickRow(row) : null)}
-              className={cn('dark:hover:bg-[#191919] hover:bg-white text-sm  text-inverse text-dark border-none', handleClickRow && 'cursor-pointer')}
+              className={cn('dark:hover:bg-[#191919] hover:bg-[#191919] text-sm  text-inverse text-dark border-none', handleClickRow && 'cursor-pointer')}
             >
               {row.getVisibleCells().map((cell) => (
                 <TableCell key={cell.id} className="capitalize py-5 border-t">
@@ -71,7 +61,7 @@ DataTableProps) => {
             </TableRow>
           ))
         ) : (
-          <TableRow className="dark:hover:bg-[#191919] hover:bg-white">
+          <TableRow className="dark:hover:bg-[#191919] hover:bg-[#191919]">
             <TableCell colSpan={columns?.length} className="h-24 w-full">
               <EmptyState />
             </TableCell>

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import Image from 'next/image';
@@ -21,6 +20,7 @@ const columns: {
     accessorKey: 'date',
     header: 'Date',
     key: 'date',
+    cell: ({ row }) => <p>{row.original.date}</p>,
   },
   {
     accessorKey: 'status',

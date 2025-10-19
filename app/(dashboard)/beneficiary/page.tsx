@@ -1,5 +1,4 @@
 'use client';
-
 import DataTable from '@/components/ui/data-table';
 import { DashboardSkeleton } from '@/components/ui/loading';
 import EmptyState from '@/components/ui/empty-state';
@@ -16,7 +15,8 @@ export default function Beneficiary() {
   }
 
   if (isTeritageError) {
-    const message = (teritageError as any)?.response?.data?.message ?? (teritageError instanceof Error ? teritageError.message : 'Unable to load beneficiaries');
+    const message =
+      (teritageError as any)?.response?.data?.message ?? (teritageError instanceof Error ? teritageError?.message : 'Unable to load beneficiaries');
     return (
       <div className="h-[70vh] flex items-center px-20">
         <div className="w-full space-y-6">

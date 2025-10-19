@@ -10,7 +10,7 @@ export default function Error({ error, reset }: any) {
     <div role="alert" className="flex flex-col gap-8 items-center pt-14 w-full bg-background">
       <div className="w-[90%] space-y-4 font-light text-sm text-[#999999]">
         <h1 className="dark:text-white text-dark text-[28px] text-white mtn-h1">This view can’t be reached</h1>
-        {/* <p className="multiline-truncate-3">{error.response.data.message}</p> */}
+        {/* <p className="multiline-truncate-3">{error}</p> */}
         <p>Try the following help:</p>
         <p>1. Try again later.</p>
         <p>2. Check your internet connection to ensure you&apos;re online.</p>

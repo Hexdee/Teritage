@@ -11,7 +11,7 @@ import VerifyError from '../errors/verify-error';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SET_PASSWORD_URL } from '@/config/path';
 import { useMutation } from '@tanstack/react-query';
-import { userSignUp, userSignUpVerify } from '@/config/apis';
+import { userForgotPassword, userForgotPasswordVerify, userSignUp, userSignUpVerify } from '@/config/apis';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import ShowError from '../errors/display-error';
@@ -29,6 +29,7 @@ export function VerifyForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get('email') || '';
+  const type = searchParams.get('type') || 'signup';
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const isError = false;
@@ -40,17 +41,17 @@ export function VerifyForm() {
   });
 
   const { mutate: mutateResend, isPending: isResending } = useMutation({
-    mutationFn: userSignUp,
+    mutationFn: type === 'reset' ? userForgotPassword : userSignUp,
     onSuccess: (response) => toast.success(response.message),
     onError: (error: any) => setErrorMessage(error?.response?.data?.message || 'An error occured while processing'),
   });
 
   const { mutate, isPending } = useMutation({
-    mutationFn: userSignUpVerify,
+    mutationFn: type === 'reset' ? userForgotPasswordVerify : userSignUpVerify,
     onSuccess: async (response: any) => {
       toast.success('User verified successfully');
       await setCookie('teritage_token', response.verificationToken);
-      router.push(`${SET_PASSWORD_URL}?email=${email}`);
+      router.push(`${SET_PASSWORD_URL}?email=${email}&type=${type}`);
     },
     onError: (error: any) => setErrorMessage(error?.response?.data?.message || 'An error occured while processing'),
   });

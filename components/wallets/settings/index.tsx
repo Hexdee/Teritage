@@ -1,31 +1,51 @@
+/* eslint-disable @next/next/no-img-element */
 import { BeneficiaryIconRounded, CopyIcon, DeleteIconRounded, WalletIconRounded } from '@/components/icons';
 import { ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { useApplications } from '@/context/dashboard-provider';
+import { WalletToken } from '@/type';
+import { copyToClipboard, transformBeneficiaries } from '@/lib/utils';
+import { useInheritancePlanStore } from '@/store/useInheritancePlanStore';
 
 interface IWalletSettings {
   setCurrentStage: (arg: number) => void;
+  token: WalletToken | null;
 }
 
-export default function WalletSettings({ setCurrentStage }: IWalletSettings) {
+export default function WalletSettings({ setCurrentStage, token }: IWalletSettings) {
   const [open, setOpen] = useState<boolean>(false);
+  const { userProfile, teritageData } = useApplications();
+  const { setBeneficiaries } = useInheritancePlanStore();
+
+  const handleSelectBeneficiary = () => {
+    setCurrentStage(8);
+    if (teritageData?.plan) {
+      setBeneficiaries(transformBeneficiaries(teritageData?.plan.inheritors));
+    }
+  };
+
   return (
     <div className="space-y-10">
       <div className="p-1 border-2 border-primary rounded-md cursor-pointer hover:border-primary/95">
         <div className="bg-primary rounded-md p-4 space-y-12 hover:bg-primary/95 transition">
           <div className="flex space-x-2 items-center">
-            <Image src="/coinbase.png" alt="coinbase" width={24} height={24} />
-            <p>Coinbase</p>
+            <img src={`https://api.dicebear.com/7.x/identicon/svg?seed=${token?.symbol || token?.name}`} alt="logo" className="rounded-full h-6 w-6" />
+            <p className="text-white">{token?.name}</p>
           </div>
 
           <div className="flex justify-between items-center">
             <div>
-              <p className="text-inverse font-medium">Mayor</p>
-              <p className="text-muted-foreground">$2,345.555</p>
+              <p className="text-inverse font-medium capitalize">{token?.name || ''}</p>
+              <p className="text-muted-foreground">${token?.priceUsd}</p>
             </div>
-            <div className="flex space-x-0.5 items-center text-inverse bg-[#F2F2F21A] text-sm p-2 rounded-full">
+            <div
+              className="flex space-x-0.5 items-center text-inverse bg-[#F2F2F21A] text-sm p-2 rounded-full cursor-pointer"
+              onClick={() => copyToClipboard(token?.tokenId || '')}
+              role="button"
+            >
               <p>Copy Address</p>
               <CopyIcon />
             </div>
@@ -40,12 +60,12 @@ export default function WalletSettings({ setCurrentStage }: IWalletSettings) {
             <p className="font-medium">Wallet Name</p>
           </div>
           <div className="flex space-x-2 items-center">
-            <p className="text-muted">Mayor</p>
+            <p className="text-muted capitalize">{userProfile?.username || userProfile?.name}</p>
             <ChevronRight size={20} />
           </div>
         </div>
 
-        <div className="flex justify-between items-center cursor-pointer" onClick={() => setCurrentStage(8)}>
+        <div className="flex justify-between items-center cursor-pointer" onClick={handleSelectBeneficiary}>
           <div className="flex space-x-2 items-center">
             <BeneficiaryIconRounded />
             <p className="font-medium">Beneficiary</p>

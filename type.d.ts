@@ -11,14 +11,18 @@ export interface ICreateUsernameForm {
 }
 
 export interface INextPage {
-  handleNext: () => void;
+  handleNext: (arg?: BeneficiaryEntry) => void;
   className?: string;
+  isLoading?: boolean;
+  newBeneficiary?: boolean;
+  // handleNext2?: (arg: BeneficiaryEntry) => void;
+  hasFormat?: boolean;
 }
 
 export interface ISelectWalletNextPage {
   handleNext: () => void;
   className?: string;
-  handleViewWallet: () => void;
+  handleViewWallet: (arg: WalletToken) => void;
 }
 
 export interface ApiResponse {
@@ -78,6 +82,19 @@ export interface UserProfile {
   walletAddresses: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ICheckIn {
+  checkIns: IUserCheckIn[];
+}
+
+export interface IUserCheckIn {
+  id: string;
+  timestamp: string;
+  secondsSinceLast: number;
+  timelinessPercent: number;
+  triggeredBy: string;
+  note: string;
 }
 
 export interface UpdateUserProfileRequest {
@@ -244,10 +261,36 @@ export type DashboardContextType = {
   walletsTokenData: WalletTokensResponse | null;
   isLoadingWalletsToken: boolean;
   isWalletTokenError: boolean;
-  walletTokenError: unknown;
+  walletTokenError: any;
+
+  // activitiesData: {
+  //   id: string;
+  //   type: string;
+  //   description: string;
+  //   metadata: any;
+  //   timestamp: string;
+  // }[];
+  // isLoadingActivities: boolean;
+  // isActivitiesError: boolean;
+  // activitiesError: any;
+
+  openSheet: boolean;
+  setOpenSheet: (arg: boolean) => void;
+  currentStage: number;
+  setCurrentStage: (arg: number) => void;
+  walletTokenError: unknown | null;
 
   userProfile: UserProfile | null;
   isLoadingUserProfile: boolean;
   isUserProfileError: boolean;
   userProfileError: unknown;
 };
+
+interface IInheritors {
+  address: string;
+  sharePercentage: number;
+  name: string;
+  email: string;
+  phone: string;
+  notes: string;
+}

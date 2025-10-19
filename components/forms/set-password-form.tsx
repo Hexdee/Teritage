@@ -8,15 +8,17 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { AUTH_SET_USERNAME } from '@/config/path';
+import { AUTH_SET_USERNAME, FORGOT_PASSWORD_URL, LOGIN_URL } from '@/config/path';
 import InputAdornment from '../ui/input-adornment';
 import FormGroup from '../ui/form-group';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { userSetPassword } from '@/config/apis';
+import { userResetPassword, userSetPassword } from '@/config/apis';
 import { setCookie, getCookie } from 'cookies-next';
 import ShowError from '../errors/display-error';
+import { toast } from 'sonner';
+import Link from 'next/link';
 
 export const FormSchema = z
   .object({
@@ -41,6 +43,7 @@ export function SetPasswordForm() {
 
   const searchParams = useSearchParams();
   const email = searchParams.get('email') || '';
+  const type: string = searchParams.get('type') || ('' as 'password' | 'signup');
 
   const router = useRouter();
 
@@ -56,10 +59,15 @@ export function SetPasswordForm() {
   });
 
   const { mutate, isPending } = useMutation({
-    mutationFn: userSetPassword,
+    mutationFn: type === 'reset' ? userResetPassword : userSetPassword,
     onSuccess: async (response: any) => {
-      await setCookie('teritage_token', response.token);
-      router.push(AUTH_SET_USERNAME);
+      if (type === 'reset') {
+        toast.success('Password updated successfully');
+        router.push(LOGIN_URL);
+      } else {
+        await setCookie('teritage_token', response.token);
+        router.push(AUTH_SET_USERNAME);
+      }
     },
     onError: (error: any) => setErrorMessage(error?.response?.data?.message || 'An error occured while processing'),
   });
@@ -142,9 +150,19 @@ export function SetPasswordForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" isLoading={isPending} loadingText="Please wait...">
-          Continue
-        </Button>
+        <div className="space-y-3">
+          <Button type="submit" className="w-full" isLoading={isPending} loadingText="Please wait...">
+            Continue
+          </Button>
+
+          {errorMessage === 'Invalid verification token' && (
+            <Link href={FORGOT_PASSWORD_URL}>
+              <Button type="button" className="w-full" variant="outline">
+                Reset Again
+              </Button>
+            </Link>
+          )}
+        </div>
         <p className="text-sm text-muted text-center">
           By using Teritage, you agree to the{' '}
           <span className="text-primary" role="button">

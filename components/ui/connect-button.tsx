@@ -1,11 +1,12 @@
 'use client';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Button } from './button';
+import { cn } from '@/lib/utils';
 
-export const CustomConnectButton = () => {
+export const CustomConnectButton = ({ buttonClassName }: { buttonClassName?: string }) => {
   return (
     <ConnectButton.Custom>
-      {({ account, chain, openAccountModal, openChainModal, openConnectModal, authenticationStatus, mounted }) => {
+      {({ account, chain, openAccountModal, openChainModal, openConnectModal, authenticationStatus, mounted }: any) => {
         // Note: If your app doesn't use authentication, you
         // can remove all 'authenticationStatus' checks
         const ready = mounted && authenticationStatus !== 'loading';
@@ -24,20 +25,20 @@ export const CustomConnectButton = () => {
             {(() => {
               if (!connected) {
                 return (
-                  <Button onClick={openConnectModal} type="button">
+                  <Button onClick={openConnectModal} type="button" className={buttonClassName}>
                     Connect Wallet
                   </Button>
                 );
               }
               if (chain.unsupported) {
                 return (
-                  <Button onClick={openChainModal} type="button">
+                  <Button onClick={openChainModal} type="button" className={buttonClassName}>
                     Wrong network
                   </Button>
                 );
               }
               return (
-                <div style={{ display: 'flex', gap: 12 }}>
+                <div className={cn('lg:flex block gap-12 space-y-2.5', buttonClassName)}>
                   <Button onClick={openChainModal} style={{ display: 'flex', alignItems: 'center' }} type="button">
                     <>
                       {chain.hasIcon && (

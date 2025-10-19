@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
 import { useEffect } from 'react';
@@ -56,7 +57,7 @@ const DEFAULT_BENEFICIARY = {
   notifyBeneficiary: false,
 };
 
-export default function BeneficiaryInfoForm({ handleNext }: INextPage) {
+export default function BeneficiaryInfoForm({ handleNext, hasFormat, isLoading, newBeneficiary = true }: INextPage) {
   const { beneficiaries, setBeneficiaries } = useInheritancePlanStore();
 
   const form = useForm({
@@ -100,7 +101,8 @@ export default function BeneficiaryInfoForm({ handleNext }: INextPage) {
     }));
 
     setBeneficiaries(formatted);
-    handleNext();
+
+    handleNext(hasFormat ? formatted : undefined);
   }
 
   return (
@@ -243,35 +245,35 @@ export default function BeneficiaryInfoForm({ handleNext }: INextPage) {
             <span>Total allocation:</span>
             <span className="font-medium text-inverse">{totalShare}%</span>
           </div>
-          {totalShare < 100 && (
-            <p className="text-xs text-muted-foreground">Unallocated percentage: {Math.max(0, 100 - totalShare)}%</p>
-          )}
-          {form.formState.errors.beneficiaries?.message && (
-            <p className="text-sm text-destructive">{form.formState.errors.beneficiaries.message}</p>
-          )}
+          {totalShare < 100 && <p className="text-xs text-muted-foreground">Unallocated percentage: {Math.max(0, 100 - totalShare)}%</p>}
+          {form.formState.errors.beneficiaries?.root?.message && <p className="text-sm text-destructive">{form.formState.errors.beneficiaries.root.message}</p>}
         </div>
 
-        <Button
-          type="button"
-          variant="secondary"
-          className="flex items-center gap-2"
-          onClick={() =>
-            append({
-              firstName: '',
-              lastName: '',
-              email: '',
-              walletAddress: '',
-              sharePercentage: 0,
-              notifyBeneficiary: false,
-            })
-          }
-        >
-          <Plus className="h-4 w-4" /> Add Another Beneficiary
-        </Button>
+        <div className="flex gap-2">
+          {newBeneficiary && (
+            <Button
+              type="button"
+              variant="secondary"
+              className="flex items-center gap-2"
+              onClick={() =>
+                append({
+                  firstName: '',
+                  lastName: '',
+                  email: '',
+                  walletAddress: '',
+                  sharePercentage: 0,
+                  notifyBeneficiary: false,
+                })
+              }
+            >
+              <Plus className="h-4 w-4" /> Add Another Beneficiary
+            </Button>
+          )}
 
-        <Button type="submit" className="w-full">
-          Continue
-        </Button>
+          <Button type="submit" className="w-full" isLoading={isLoading} loadingText="Please wait...">
+            Continue
+          </Button>
+        </div>
       </form>
     </Form>
   );
