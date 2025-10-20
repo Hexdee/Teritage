@@ -5,10 +5,10 @@ import { Separator } from '../ui/separator';
 import { ArrowLeft } from '../icons';
 import Introduction from '../beneficiary/introduction';
 import BeneficiaryInfoForm from '../forms/beneficiary-info-form';
-import TokenAllocation, { formatName } from '@/app/inheritance/token-allocation/page';
+import TokenAllocation, { formatName } from '@/components/inheritance/token-allocation-screen';
 import { useApplications } from '@/context/dashboard-provider';
 import SetUpInheritanceForm from '../forms/setup-inheritance-form';
-import WalletSuccessPage from '@/app/inheritance/success/page';
+import SuccessScreen from '@/components/inheritance/success-screen';
 import { SelectWallet } from './select-wallet';
 import WalletSettings from './settings';
 import { UpdateTeritagePlanRequest, WalletToken } from '@/type';
@@ -138,7 +138,7 @@ export default function AddWalletContent() {
     3: <BeneficiaryInfoForm handleNext={() => handleNext(4, 3)} />,
     4: <TokenAllocation handleNext={() => handleNext(5, 4)} />,
     5: (
-      <WalletSuccessPage
+      <SuccessScreen
         handleNext={() => {
           setOpenSheet(false);
           setCurrentStage(0);
