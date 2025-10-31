@@ -3,7 +3,7 @@ import { sendEmail } from "../../utils/email.js";
 import { TeritagePlanModel } from "../../models/TeritagePlan.js";
 import { IUser, UserModel } from "../../models/User.js";
 import { connectTestDatabase, disconnectTestDatabase, resetTestDatabase } from "../../tests/mongo.js";
-import { createTeritagePlan, recordCheckIn, updateTeritagePlan } from "../teritageService.js";
+import { createTeritagePlan, recordCheckIn, recordClaim, updateTeritagePlan } from "../teritageService.js";
 
 vi.mock("../../utils/email.js", () => ({
   sendEmail: vi.fn(async () => {})
@@ -131,6 +131,30 @@ describe("Teritage Service", () => {
     const updatedPlan = await updateTeritagePlan(owner.id, { notifyBeneficiary: true });
     expect(updatedPlan.notifyBeneficiary).toBe(true);
     expect(sendEmailMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("sends claim notifications when a plan enters the claim phase", async () => {
+    const owner = await UserModel.create({ email: "claim@example.com", username: "Claim Owner", name: "Claim Owner" });
+
+    await createTeritagePlan(owner.id, {
+      ownerAddress: "0xclaim",
+      inheritors: [{ address: "0xbeneficiary", sharePercentage: 60, email: "claim-beneficiary@example.com" }],
+      tokens: [{ address: "0xTokenClaim", type: "ERC20" }],
+      checkInIntervalSeconds: 7200,
+      notifyBeneficiary: false
+    });
+
+    sendEmailMock.mockClear();
+
+    const plan = await recordClaim("0xclaim", { initiatedBy: "0xtrigger", txHash: "0xhash" });
+    expect(plan.isClaimInitiated).toBe(true);
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+    const [emailPayload] = sendEmailMock.mock.calls[0] ?? [];
+    expect(emailPayload?.subject).toMatch(/inheritance has been distributed/i);
+    expect(emailPayload?.html).toContain("60%");
+    expect(emailPayload?.html).toContain("0xclaim");
+    expect(emailPayload?.html).toContain("0xhash");
+    expect(emailPayload?.html).toContain("https://hashscan.io/testnet/transaction/0xhash");
   });
 
   it("records check-ins and keeps profile accessible", async () => {

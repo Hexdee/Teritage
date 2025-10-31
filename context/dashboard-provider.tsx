@@ -5,6 +5,7 @@ import { TERITAGES_KEY, USER_PROFILE_KEY, WALLETS_SUMMARY_KEY, WALLETS_TOKENS_KE
 import { ApiResponse, DashboardContextType, IWalletData, UserProfile, WalletSummaryResponse, WalletTokensResponse } from '@/type';
 import { AxiosError } from 'axios';
 import { useQuery } from '@tanstack/react-query';
+import { getCookie } from 'cookies-next';
 import React, { createContext, useContext, useState } from 'react';
 import { useAccount } from 'wagmi';
 
@@ -15,6 +16,8 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const [currentStage, setCurrentStage] = useState<number>(0);
   const [openSheet, setOpenSheet] = useState<boolean>(false);
   const hasWalletAddress = Boolean(isConnected && address);
+  const authToken = typeof window !== 'undefined' ? getCookie('teritage_token') : null;
+  const isAuthenticated = Boolean(authToken);
 
   const {
     data: teritageData,
@@ -22,9 +25,9 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     isError: isTeritageError,
     error: teritageError,
   } = useQuery<ApiResponse>({
-    queryKey: [TERITAGES_KEY, isConnected],
+    queryKey: [TERITAGES_KEY, isAuthenticated],
     queryFn: () => getUserTeritageApi(),
-    enabled: !!isConnected,
+    enabled: isAuthenticated,
   });
 
   const {
@@ -40,7 +43,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       }
       return getWalletSummaryApi(address);
     },
-    enabled: hasWalletAddress,
+    enabled: isAuthenticated && hasWalletAddress,
     retry: 2,
     staleTime: 60 * 1000,
   });
@@ -58,7 +61,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       }
       return getWalletTokensApi(address);
     },
-    enabled: hasWalletAddress,
+    enabled: isAuthenticated && hasWalletAddress,
     retry: 2,
     staleTime: 60 * 1000,
   });
@@ -73,7 +76,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   } = useQuery<{ user: UserProfile }, AxiosError>({
     queryKey: [USER_PROFILE_KEY, address],
     queryFn: getUserProfileApi,
-    enabled: isConnected,
+    enabled: isAuthenticated,
     retry: 2,
     staleTime: 60 * 1000,
   });

@@ -192,8 +192,12 @@ export async function handleRecordClaim(req: AuthenticatedRequest, res: Response
   try {
     const ownerAddress = z.string().trim().min(1).parse(req.params.ownerAddress);
     const payload = z
-      .object({ initiatedBy: z.string().trim().min(1), note: z.string().trim().optional() })
-      .parse(req.body);
+      .object({
+        initiatedBy: z.string().trim().optional(),
+        note: z.string().trim().optional(),
+        txHash: z.string().trim().optional()
+      })
+      .parse(req.body ?? {});
     const plan = await recordClaim(ownerAddress, payload);
     const status = deriveStatus(plan.checkInIntervalSeconds, plan.lastCheckInAt, plan.isClaimInitiated);
     res.status(201).json({ plan: serializePlan(plan), status });
