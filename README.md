@@ -8,7 +8,7 @@ This repository hosts the three pieces that power Teritage:
 
 Each package is self-contained with its own `pnpm` workspace; install dependencies per package (see below).
 
-## Quick Start
+## Quick Start 
 
 ```bash
 # 1. Clone the repo, then inside each workspace run:
