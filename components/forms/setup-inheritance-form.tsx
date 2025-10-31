@@ -73,6 +73,7 @@ export default function SetUpInheritanceForm({ handleNext }: INextPage) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
+                  <SelectItem value={String(60)}>Every minute (demo)</SelectItem>
                   <SelectItem value={String(24 * 60 * 60)}>Every day</SelectItem>
                   <SelectItem value={String(7 * 24 * 60 * 60)}>Every week</SelectItem>
                   <SelectItem value={String(30 * 24 * 60 * 60)}>Every month (approx.)</SelectItem>

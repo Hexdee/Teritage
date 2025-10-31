@@ -13,5 +13,8 @@
     "dotenv": "^16.4.5",
     "hardhat": "^2.19.0",
     "solhint": "^3.6.1"
+  },
+  "dependencies": {
+    "@hashgraph/sdk": "^2.76.0"
   }
 }

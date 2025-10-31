@@ -28,6 +28,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const DEFAULT_OPTIONS = [
+  { value: String(60), label: 'Every minute (demo)' },
   { value: String(24 * 60 * 60), label: 'Every day' },
   { value: String(7 * 24 * 60 * 60), label: 'Every week' },
   { value: String(30 * 24 * 60 * 60), label: 'Every month (approx.)' },
