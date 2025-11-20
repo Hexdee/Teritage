@@ -27,8 +27,8 @@ export default function Layout({ children }: { children: ReactNode }) {
       <CustomConnectButton buttonClassName="lg:hidden flex gap-2" />
 
       <div className="flex justify-center h-full items-center w-full">
-        <Card className="sm:max-w-md sm:min-w-md max-h-[75vh] overflow-y-auto">
-          <CardContent className="sm:max-w-md sm:min-w-md h-full">{children}</CardContent>
+        <Card className="sm:max-w-md sm:min-w-md max-h-[75vh] overflow-y-auto w-full">
+          <CardContent className="sm:max-w-md sm:min-w-md h-full w-full">{children}</CardContent>
         </Card>
       </div>
     </div>

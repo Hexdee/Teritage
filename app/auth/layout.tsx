@@ -26,7 +26,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         )}
 
         <div className="flex justify-center h-full items-center w-full">
-          <Card className="sm:max-w-md">
+          <Card className="sm:max-w-md w-full">
             <CardHeader>
               <div className="flex justify-between items-center text-inverse">
                 <div className="flex space-x-2 items-center">
@@ -46,7 +46,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                 {/* <CloseIcon /> */}
               </div>
             </CardHeader>
-            <CardContent className="sm:max-w-md lg:min-w-md">{children}</CardContent>
+            <CardContent className="sm:max-w-md lg:min-w-md w-full">{children}</CardContent>
           </Card>
         </div>
       </div>
