@@ -60,7 +60,7 @@ const toShareValues = (shares: number[]): bigint[] => shares.map((share) => BigI
 
 const toInterval = (seconds: number): bigint => BigInt(seconds);
 
-const wagmiClient = createPublicClient({
+export const wagmiPublicClient = createPublicClient({
   chain: hederaTestnet,
   transport: http(),
 });
@@ -77,7 +77,7 @@ export function useTeritageContract() {
         chainId: TERITAGE_CHAIN_ID,
         ...args,
       });
-      await waitForTransactionReceipt(wagmiClient, { hash });
+      await waitForTransactionReceipt(wagmiPublicClient, { hash });
       return hash;
     },
     [writeContractAsync]

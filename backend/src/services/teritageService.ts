@@ -233,22 +233,34 @@ export async function recordCheckIn(
   return plan;
 }
 
-export async function recordClaim(ownerAddress: string, payload: { initiatedBy: string; note?: string }): Promise<ITeritagePlan> {
+export async function recordClaim(
+  ownerAddress: string,
+  payload: { initiatedBy?: string; note?: string; txHash?: string }
+): Promise<ITeritagePlan> {
   const plan = await TeritagePlanModel.findOne({ ownerAddress: ownerAddress.toLowerCase() });
   if (!plan) {
     throw new Error("Teritage plan not found");
   }
 
+  const alreadyInitiated = plan.isClaimInitiated;
   plan.isClaimInitiated = true;
-  plan.activities.push(
-    buildActivity("CLAIM_TRIGGERED", {
-      initiatedBy: payload.initiatedBy,
-      note: payload.note
-    })
-  );
+  if (!alreadyInitiated) {
+    plan.activities.push(
+      buildActivity("CLAIM_TRIGGERED", {
+        initiatedBy: payload.initiatedBy,
+        note: payload.note
+      })
+    );
+  }
 
   await plan.save();
   await plan.populate<{ ownerAccount: IUser }>("ownerAccount");
+
+  if (!alreadyInitiated) {
+    const owner = plan.ownerAccount as IUser;
+    await notifyBeneficiariesOfClaim(plan, owner, payload.txHash);
+  }
+
   return plan;
 }
 
@@ -365,21 +377,25 @@ async function notifyBeneficiariesByEmail(plan: ITeritagePlan, owner: IUser | nu
   }
 
   const ownerName = owner.name?.trim() || owner.username?.trim() || owner.email;
-  const subject = `${ownerName} added you as a Teritage beneficiary`;
+  const subject = `${ownerName} added you to their Teritage inheritance plan`;
+  const intervalDescription = formatCheckInInterval(plan.checkInIntervalSeconds);
 
   const emailTasks = recipients.map(async (recipient) => {
     const greeting = recipient.name ? `Hi ${recipient.name},` : "Hello,";
-    const shareText =
-      typeof recipient.sharePercentage === "number"
-        ? `<p>Your allocation: <strong>${recipient.sharePercentage}%</strong></p>`
-        : "";
+    const shareMarkup = renderShareMarkup(recipient.sharePercentage);
 
     const html = `
       <p>${greeting}</p>
       <p>${ownerName} just created a Teritage inheritance plan and listed you as a beneficiary.</p>
-      ${shareText}
-      <p>Teritage securely tracks assets and requires periodic check-ins from the plan owner. If they miss their check-in window, beneficiaries can initiate a claim.</p>
-      <p>We recommend keeping this email for your records. If you have questions, please reach out to ${ownerName} directly.</p>
+      ${shareMarkup}
+      <p>Here’s what that means:</p>
+      <ul>
+        <li>${ownerName} confirms everything is okay ${intervalDescription} to keep the plan active.</li>
+        <li>If a check-in is missed, Teritage will email you so the claim can move forward.</li>
+        <li>Once a claim starts, we’ll send another update so you know assets are being distributed.</li>
+      </ul>
+      <p>Please keep this email for your records and make sure ${ownerName} can reach you if your contact details change.</p>
+      <p>If you have questions about the plan, reach out to ${ownerName} directly.</p>
       <p>— The Teritage Team</p>
     `;
 
@@ -398,6 +414,106 @@ async function notifyBeneficiariesByEmail(plan: ITeritagePlan, owner: IUser | nu
   });
 
   await Promise.all(emailTasks);
+}
+
+async function notifyBeneficiariesOfClaim(plan: ITeritagePlan, owner: IUser | null | undefined, txHash?: string | null) {
+  if (!owner || !plan.inheritors?.length) {
+    return;
+  }
+
+  const recipients = plan.inheritors
+    .map((inheritor) => ({
+      email: inheritor.email?.trim(),
+      name: inheritor.name?.trim(),
+      sharePercentage: inheritor.sharePercentage
+    }))
+    .filter((recipient) => recipient.email);
+
+  if (!recipients.length) {
+    return;
+  }
+
+  const ownerName = owner.name?.trim() || owner.username?.trim() || owner.email;
+  const subject = `${ownerName}'s inheritance has been distributed`;
+  const ownerIdentifier = `${ownerName} (${plan.ownerAddress})`;
+  const txHashLine = txHash ? `<p>Transaction hash: <code>${txHash}</code></p>` : "";
+  const txLinkLine = txHash
+    ? `<p><a href="https://hashscan.io/testnet/transaction/${txHash}" target="_blank" rel="noopener noreferrer">View on HashScan</a></p>`
+    : "";
+
+  const emailTasks = recipients.map(async (recipient) => {
+    const greeting = recipient.name ? `Hi ${recipient.name},` : "Hello,";
+    const shareText = renderSharePercentage(recipient.sharePercentage);
+
+    const html = `
+      <p>${greeting}</p>
+      <p>${shareText} of ${ownerIdentifier} has just been delivered to your wallet as part of their Teritage inheritance plan.</p>
+      ${txHashLine}
+      ${txLinkLine}
+      <p>If you have any questions about the transfer, please reach out to ${ownerName} directly.</p>
+      <p>— The Teritage Team</p>
+    `;
+
+    try {
+      await sendEmail({
+        to: recipient.email as string,
+        subject,
+        html
+      });
+    } catch (error) {
+      logger.warn("Failed to send beneficiary claim email", {
+        email: recipient.email,
+        error
+      });
+    }
+  });
+
+  await Promise.all(emailTasks);
+}
+
+function formatCheckInInterval(seconds: number): string {
+  if (!seconds || seconds <= 0) {
+    return "on a regular basis";
+  }
+
+  const units = [
+    { label: "day", seconds: 86_400 },
+    { label: "hour", seconds: 3_600 },
+    { label: "minute", seconds: 60 }
+  ];
+
+  for (const unit of units) {
+    if (seconds % unit.seconds === 0) {
+      const value = seconds / unit.seconds;
+      const plural = value === 1 ? "" : "s";
+      return `every ${value} ${unit.label}${plural}`;
+    }
+  }
+
+  return `every ${seconds} seconds`;
+}
+
+function formatShare(share?: number): string | null {
+  if (typeof share !== "number" || Number.isNaN(share)) {
+    return null;
+  }
+  return Number.isInteger(share) ? share.toString() : share.toFixed(2).replace(/\.?0+$/, "");
+}
+
+function renderShareMarkup(share?: number): string {
+  const formatted = formatShare(share);
+  if (!formatted) {
+    return "";
+  }
+  return `<p>Your allocation: <strong>${formatted}%</strong></p>`;
+}
+
+function renderSharePercentage(share?: number): string {
+  const formatted = formatShare(share);
+  if (!formatted) {
+    return "A portion";
+  }
+  return `${formatted}%`;
 }
 
 function calculateTimeliness(intervalSeconds: number, elapsedSeconds: number): number {

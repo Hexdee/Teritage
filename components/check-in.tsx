@@ -4,8 +4,8 @@ import { CheckIcon, HealthIcon } from './icons';
 import { Separator } from './ui/separator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarDays } from 'lucide-react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getCheckIns, usercheckIn } from '@/config/apis';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getCheckIns } from '@/config/apis';
 import { TERITAGES_KEY, USER_CHECK_IN } from '@/config/key';
 import { toast } from 'sonner';
 import ShowError from './errors/display-error';
@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { useApplications } from '@/context/dashboard-provider';
 import { AxiosError } from 'axios';
 import { TailSpinPreloader } from './icons/tail-spin-preloader';
+import { useTeritageContract } from '@/lib/blockchain/useTeritageContract';
 import { ICheckIn, IUserCheckIn } from '@/type';
 import { capitalizeFirstLetter } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -23,6 +24,8 @@ export function UserCheckIn({ buttonClassName }: { buttonClassName?: string }) {
   const queryClient: any = useQueryClient();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { userProfile } = useApplications();
+  const { checkIn, isPending } = useTeritageContract();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function getCheckInNote() {
     const messages = [
@@ -36,23 +39,37 @@ export function UserCheckIn({ buttonClassName }: { buttonClassName?: string }) {
     return messages[Math.floor(Math.random() * messages.length)];
   }
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: usercheckIn,
-    onSuccess: () => {
-      queryClient.invalidateQueries(TERITAGES_KEY);
-      queryClient.invalidateQueries(USER_CHECK_IN);
-      toast.success('Checked in successfully');
-    },
-    onError: (error: any) => setErrorMessage(error?.response?.data?.message || 'An error occured while processing'),
-  });
-
   const { data, isLoading, isError, error } = useQuery<ICheckIn, AxiosError>({
     queryFn: getCheckIns,
     queryKey: [USER_CHECK_IN],
   });
 
-  const handleCheckIn = () => {
-    mutate({ triggeredBy: userProfile?.name || '', note: getCheckInNote(), timestamp: new Date().toISOString() });
+  const handleCheckIn = async () => {
+    try {
+      setErrorMessage(null);
+      setIsSubmitting(true);
+      const payload = {
+        triggeredBy: userProfile?.name || '',
+        note: getCheckInNote(),
+        timestamp: new Date().toISOString(),
+      };
+
+      await checkIn({ backendPayload: payload });
+
+      await Promise.all([
+        queryClient.invalidateQueries(TERITAGES_KEY),
+        queryClient.invalidateQueries(USER_CHECK_IN),
+      ]);
+      toast.success('Checked in successfully');
+    } catch (error) {
+      const message =
+        (error as any)?.response?.data?.message ??
+        (error instanceof Error ? error.message : 'Failed to process check-in');
+      setErrorMessage(message);
+      toast.error('Unable to complete check-in');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   console.log({ data });
@@ -85,7 +102,7 @@ export function UserCheckIn({ buttonClassName }: { buttonClassName?: string }) {
                 className="text-white"
                 endIcon={<CheckIcon />}
                 onClick={handleCheckIn}
-                isLoading={isPending}
+                isLoading={isPending || isSubmitting}
                 loadingText="Please wait..."
               >
                 Perform Check-In

@@ -18,6 +18,8 @@ import {HederaResponseCodes} from "./hedera/HederaResponseCodes.sol";
 contract TeritageInheritance is ReentrancyGuard {
     using SafeERC20 for IERC20;
 
+    uint256 private constant MAX_INT64_U = 9_223_372_036_854_775_807;
+
     uint96 private constant BASIS_POINTS = 10_000;
     IHederaTokenService private constant HEDERA = IHederaTokenService(address(0x167));
 
@@ -71,12 +73,11 @@ contract TeritageInheritance is ReentrancyGuard {
     error PlanNotFound();
     error PlanAlreadyClaimed();
     error InvalidConfiguration();
-    error NotInheritor();
     error ClaimNotAvailable();
     error NothingToDistribute();
     error InsufficientAllowance(address token, uint256 currentAllowance, uint256 requiredAllowance);
     error HederaTokenTransferFailed(address token, int64 responseCode);
-    error HederaTransferAmountOverflow(address token, int256 requestedAmount);
+    error HederaTransferAmountOverflow(address token, uint256 requestedAmount);
 
     /**
      * @notice Create a new inheritance plan for the caller.
@@ -172,13 +173,14 @@ contract TeritageInheritance is ReentrancyGuard {
 
     /**
      * @notice Trigger distribution to inheritors once the owner misses the check-in deadline.
+     * @dev Any account may execute the claim on behalf of the inheritors. The function distributes
+     *      assets immediately and marks the plan as claimed to prevent duplicate executions.
      * @param owner Address of the plan owner whose assets are being claimed.
      */
     function claimInheritance(address owner) external nonReentrant {
         Plan storage plan = _requirePlan(owner);
         if (plan.isClaimed) revert PlanAlreadyClaimed();
 
-        if (_indexOfInheritor(plan, msg.sender) == type(uint256).max) revert NotInheritor();
         if (!_isClaimable(plan)) revert ClaimNotAvailable();
         if (plan.tokens.length == 0) revert InvalidConfiguration();
 
@@ -290,27 +292,29 @@ contract TeritageInheritance is ReentrancyGuard {
     }
 
     function _distributeHtsToken(Plan storage plan, address tokenAddr, address owner) private returns (uint256 distributed) {
-        int64 balance = HEDERA.getTokenBalance(tokenAddr, owner);
-        if (balance <= 0) {
+        uint256 balance = _getHtsTokenBalance(tokenAddr, owner);
+        if (balance == 0) {
             return 0;
         }
 
-        int256 total = int256(balance);
+        if (balance > MAX_INT64_U) {
+            revert HederaTransferAmountOverflow(tokenAddr, MAX_INT64_U + 1);
+        }
+
         bool distributedForToken;
 
         for (uint256 i = 0; i < plan.inheritors.length; i++) {
-            int256 shareAmount = (total * int256(uint256(plan.shares[i]))) / int256(uint256(BASIS_POINTS));
+            uint256 shareAmount = (balance * uint256(plan.shares[i])) / uint256(BASIS_POINTS);
             address beneficiary = plan.inheritors[i];
 
             if (shareAmount <= 0) {
                 continue;
             }
-            if (shareAmount > int256(type(int64).max)) {
+            if (shareAmount > MAX_INT64_U) {
                 revert HederaTransferAmountOverflow(tokenAddr, shareAmount);
             }
 
-            int64 amount64 = int64(shareAmount);
-            int64 response = HEDERA.transferFrom(tokenAddr, owner, beneficiary, amount64);
+            int64 response = HEDERA.transferFrom(tokenAddr, owner, beneficiary, shareAmount);
             if (response != HederaResponseCodes.SUCCESS) {
                 revert HederaTokenTransferFailed(tokenAddr, response);
             }
@@ -325,33 +329,42 @@ contract TeritageInheritance is ReentrancyGuard {
         if (!distributedForToken) revert NothingToDistribute();
     }
 
+    function _getHtsTokenBalance(address token, address account) private returns (uint256) {
+        (int64 responseCode, bytes memory response) = HEDERA.redirectForToken(token, abi.encodeWithSelector(IERC20.balanceOf.selector, account));
+        if (responseCode != HederaResponseCodes.SUCCESS || response.length == 0) {
+            return 0;
+        }
+        return abi.decode(response, (uint256));
+    }
+
     function _distributeHbar(Plan storage plan, address owner) private returns (uint256 distributed) {
-        int64 balance = HEDERA.getAccountBalance(owner);
-        if (balance <= 0) {
+        uint256 balance = owner.balance;
+
+        if (balance == 0) {
             return 0;
         }
 
-        int256 total = int256(balance);
         bool distributedForToken;
 
         for (uint256 i = 0; i < plan.inheritors.length; i++) {
-            int256 shareAmount = (total * int256(uint256(plan.shares[i]))) / int256(uint256(BASIS_POINTS));
+            uint256 shareAmount = (balance * uint256(plan.shares[i])) / uint256(BASIS_POINTS);
             address beneficiary = plan.inheritors[i];
 
             if (shareAmount <= 0) {
                 continue;
             }
-            if (shareAmount > int256(type(int64).max)) {
+            if (shareAmount > MAX_INT64_U) {
                 revert HederaTransferAmountOverflow(address(0), shareAmount);
             }
+            int64 amount64 = int64(uint64(shareAmount));
 
-            int64 amount64 = int64(shareAmount);
+            IHederaTokenService.TransferList memory transferList;
+            transferList.transfers = new IHederaTokenService.AccountAmount[](2);
 
-            IHederaTokenService.AccountAmount[] memory hbarTransfers = new IHederaTokenService.AccountAmount[](2);
-            hbarTransfers[0] = IHederaTokenService.AccountAmount({accountID: owner, amount: -amount64, isApproval: true});
-            hbarTransfers[1] = IHederaTokenService.AccountAmount({accountID: beneficiary, amount: amount64, isApproval: false});
+            transferList.transfers[0] = IHederaTokenService.AccountAmount({accountID: owner, amount: -amount64, isApproval: true});
+            transferList.transfers[1] = IHederaTokenService.AccountAmount({accountID: beneficiary, amount: amount64, isApproval: false});
 
-            int64 response = HEDERA.cryptoTransfer(hbarTransfers, new IHederaTokenService.TokenTransferList[](0));
+            int64 response = HEDERA.cryptoTransfer(transferList, new IHederaTokenService.TokenTransferList[](0));
             if (response != HederaResponseCodes.SUCCESS) {
                 revert HederaTokenTransferFailed(address(0), response);
             }
@@ -399,7 +412,7 @@ contract TeritageInheritance is ReentrancyGuard {
         address[] calldata tokens,
         uint8[] calldata tokenTypes,
         uint64 checkInInterval
-    ) private view {
+    ) private {
         if (checkInInterval == 0) revert InvalidConfiguration();
         _validateShares(inheritors, shares);
         _validateTokens(tokens, tokenTypes);
@@ -419,7 +432,7 @@ contract TeritageInheritance is ReentrancyGuard {
         if (total == 0 || total > BASIS_POINTS) revert InvalidConfiguration();
     }
 
-    function _validateTokens(address[] calldata tokens, uint8[] calldata tokenTypes) private view {
+    function _validateTokens(address[] calldata tokens, uint8[] calldata tokenTypes) private {
         if (tokens.length == 0 || tokens.length != tokenTypes.length) revert InvalidConfiguration();
 
         bool seenHbar;
@@ -442,22 +455,16 @@ contract TeritageInheritance is ReentrancyGuard {
                 if (tokens[i] == tokens[j]) revert InvalidConfiguration();
             }
 
-            if (tokenType == TokenType.HTS && !HEDERA.isToken(tokens[i])) revert InvalidConfiguration();
+            if (tokenType == TokenType.HTS) {
+                (int64 responseCode, bool isTokenFlag) = HEDERA.isToken(tokens[i]);
+                if (responseCode != HederaResponseCodes.SUCCESS || !isTokenFlag) revert InvalidConfiguration();
+            }
         }
     }
 
     function _decodeTokenType(uint8 raw) private pure returns (TokenType) {
         if (raw > uint8(TokenType.HBAR)) revert InvalidConfiguration();
         return TokenType(raw);
-    }
-
-    function _indexOfInheritor(Plan storage plan, address account) private view returns (uint256) {
-        for (uint256 i = 0; i < plan.inheritors.length; i++) {
-            if (plan.inheritors[i] == account) {
-                return i;
-            }
-        }
-        return type(uint256).max;
     }
 
     function _isClaimable(Plan storage plan) private view returns (bool) {

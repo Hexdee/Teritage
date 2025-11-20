@@ -5,6 +5,13 @@ const { loadFixture, time } = require("@nomicfoundation/hardhat-toolbox/network-
 const ONE_DAY = 24 * 60 * 60;
 const HEDERA_PRECOMPILE = "0x0000000000000000000000000000000000000167";
 const ZERO_ADDRESS = ethers.ZeroAddress;
+const WEI_PER_TINYBAR = 10_000_000_000n;
+
+async function setNativeTinybarBalance(address, tinybars) {
+  const tinybarBigInt = typeof tinybars === "bigint" ? tinybars : BigInt(tinybars);
+  const weiAmount = tinybarBigInt * WEI_PER_TINYBAR;
+  await network.provider.send("hardhat_setBalance", [address, ethers.toBeHex(weiAmount)]);
+}
 
 async function setupHtsPrecompile() {
   const artifact = await artifacts.readArtifact("MockHederaTokenService");
@@ -128,7 +135,7 @@ describe("TeritageInheritance", function () {
     await expect(teritage.connect(inheritorA).claimInheritance(owner.address)).to.not.be.reverted;
   });
 
-  it("distributes ERC-20, HTS, and HBAR balances according to configured shares", async function () {
+  it("distributes ERC-20, HTS, and HBAR balances via inheritor-initiated claim (pull model)", async function () {
     const { owner, inheritorA, inheritorB, tokenA, teritage, erc20Amount, hts, htsToken, htsBalance } =
       await loadFixture(deployFixture);
 
@@ -148,6 +155,7 @@ describe("TeritageInheritance", function () {
     await hts.setAllowance(htsToken, owner.address, await teritage.getAddress(), Number(htsBalance));
     await hts.setHbarBalance(owner.address, hbarBalance);
     await hts.setHbarAllowance(owner.address, await teritage.getAddress(), hbarBalance);
+    await setNativeTinybarBalance(owner.address, hbarBalance);
 
     await time.increase(ONE_DAY + 5);
 
@@ -185,6 +193,55 @@ describe("TeritageInheritance", function () {
       teritage,
       "PlanAlreadyClaimed"
     );
+  });
+
+  it("allows third parties to trigger distribution once overdue (push model)", async function () {
+    const { owner, inheritorA, inheritorB, outsider, tokenA, teritage, erc20Amount, hts, htsToken, htsBalance } =
+      await loadFixture(deployFixture);
+
+    const hbarBalance = 75_000;
+
+    await teritage
+      .connect(owner)
+      .createPlan(
+        [inheritorA.address, inheritorB.address],
+        [6000, 4000],
+        [await tokenA.getAddress(), htsToken, ZERO_ADDRESS],
+        [0, 1, 2],
+        ONE_DAY
+      );
+
+    await tokenA.connect(owner).approve(await teritage.getAddress(), ethers.MaxUint256);
+    await hts.setAllowance(htsToken, owner.address, await teritage.getAddress(), Number(htsBalance));
+    await hts.setHbarBalance(owner.address, hbarBalance);
+    await hts.setHbarAllowance(owner.address, await teritage.getAddress(), hbarBalance);
+    await setNativeTinybarBalance(owner.address, hbarBalance);
+
+    await time.increase(ONE_DAY + 10);
+
+    await expect(teritage.connect(outsider).claimInheritance(owner.address)).to.not.be.reverted;
+
+    const expectedAErc20 = (erc20Amount * 6000n) / 10000n;
+    const expectedBErc20 = erc20Amount - expectedAErc20;
+    expect(await tokenA.balanceOf(inheritorA.address)).to.equal(expectedAErc20);
+    expect(await tokenA.balanceOf(inheritorB.address)).to.equal(expectedBErc20);
+
+    const inheritorAHts = await hts.getTokenBalance(htsToken, inheritorA.address);
+    const inheritorBHts = await hts.getTokenBalance(htsToken, inheritorB.address);
+    const expectedAHts = (htsBalance * 6000n) / 10000n;
+    const expectedBHts = htsBalance - expectedAHts;
+    expect(inheritorAHts).to.equal(Number(expectedAHts));
+    expect(inheritorBHts).to.equal(Number(expectedBHts));
+
+    const inheritorAHbar = await hts.getAccountBalance(inheritorA.address);
+    const inheritorBHbar = await hts.getAccountBalance(inheritorB.address);
+    const expectedAHbar = (BigInt(hbarBalance) * 6000n) / 10000n;
+    const expectedBHbar = BigInt(hbarBalance) - expectedAHbar;
+    expect(inheritorAHbar).to.equal(expectedAHbar);
+    expect(inheritorBHbar).to.equal(expectedBHbar);
+
+    const plan = await teritage.getPlan(owner.address);
+    expect(plan[6]).to.equal(true);
   });
 
   it("allows share totals below 100% and preserves the owner's remainder", async function () {
@@ -317,6 +374,7 @@ describe("TeritageInheritance", function () {
 
     await hts.setHbarBalance(owner.address, 1_000);
     await hts.setHbarAllowance(owner.address, await teritage.getAddress(), 100);
+    await setNativeTinybarBalance(owner.address, 1_000);
 
     await time.increase(ONE_DAY + 5);
 

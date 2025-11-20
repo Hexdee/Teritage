@@ -5,11 +5,18 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { ICreateUsernameForm } from '@/type';
 import ShowError from '../errors/display-error';
-import { useApplications } from '@/context/dashboard-provider';
 
 const FormSchema = z.object({
   username: z.string().min(2, {
@@ -17,12 +24,16 @@ const FormSchema = z.object({
   }),
 });
 
-export function CreateUsernameForm({ handleNext, errorMessage, setErrorMessage, isLoading }: ICreateUsernameForm) {
-  const { userProfile } = useApplications();
+export function CreateUsernameForm({
+  handleNext,
+  errorMessage,
+  setErrorMessage,
+  isLoading,
+}: ICreateUsernameForm) {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      username: userProfile?.username || '',
+      username: '',
     },
   });
 
@@ -32,25 +43,34 @@ export function CreateUsernameForm({ handleNext, errorMessage, setErrorMessage, 
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
         <ShowError error={errorMessage ?? null} setError={setErrorMessage} />
         <FormField
           control={form.control}
-          name="username"
+          name='username'
           render={({ field }) => (
-            <FormItem className="space-y-4">
+            <FormItem className='space-y-4'>
               <div>
-                <FormLabel className="text-lg">Create a unique username</FormLabel>
-                <FormDescription>You can use your name or nickname.</FormDescription>
+                <FormLabel className='text-lg'>
+                  Create a unique username
+                </FormLabel>
+                <FormDescription>
+                  You can use your name or nickname.
+                </FormDescription>
               </div>
               <FormControl>
-                <Input placeholder="Enter username" {...field} />
+                <Input placeholder='Enter username' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" loadingText="Please wait..." isLoading={isLoading}>
+        <Button
+          type='submit'
+          className='w-full'
+          loadingText='Please wait...'
+          isLoading={isLoading}
+        >
           Continue
         </Button>
       </form>

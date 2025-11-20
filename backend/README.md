@@ -26,16 +26,16 @@ pnpm lint       # lint TypeScript source
 
 Create a `.env` file or export the following variables as needed:
 
-| Variable | Description |
-| --- | --- |
-| `PORT` | HTTP port (default `4000`) |
-| `MONGODB_URI` | MongoDB connection string |
-| `JWT_SECRET` | Secret used to sign access tokens |
-| `JWT_EXPIRES_IN` | token lifetime (e.g. `1d`) |
-| `EMAIL_FROM` | From address for transactional email |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | Optional SMTP credentials (logs to console if omitted) |
-| `HEDERA_API_BASE_URL` | Mirror node base URL (defaults to Hedera testnet) |
-| `CONTRACT_ADDRESS`, `CONTRACT_RPC_URL` | Optional TeritageInheritance contract + RPC endpoint for event monitoring |
+| Variable                                           | Description                                                               |
+| -------------------------------------------------- | ------------------------------------------------------------------------- |
+| `PORT`                                             | HTTP port (default `4000`)                                                |
+| `MONGODB_URI`                                      | MongoDB connection string                                                 |
+| `JWT_SECRET`                                       | Secret used to sign access tokens                                         |
+| `JWT_EXPIRES_IN`                                   | token lifetime (e.g. `1d`)                                                |
+| `EMAIL_FROM`                                       | From address for transactional email                                      |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | Optional SMTP credentials (logs to console if omitted)                    |
+| `HEDERA_API_BASE_URL`                              | Mirror node base URL (defaults to Hedera testnet)                         |
+| `CONTRACT_ADDRESS`, `CONTRACT_RPC_URL`             | Optional TeritageInheritance contract + RPC endpoint for event monitoring |
 
 ## REST Endpoints (key routes)
 
@@ -62,10 +62,3 @@ Authentication uses a Bearer JWT header (`Authorization: Bearer <token>`).
 ## Notifications & Contract Events
 
 `src/services/notificationService.ts` bootstraps Socket.IO and exposes helpers to emit events or send transactional emails. `src/services/contractWatcher.ts` can listen to the on-chain `TeritageInheritance` contract (when RPC/env vars are configured) and relay events back to Mongo + connected clients.
-
-## Development Notes
-
-- Mongo indexes are created via Mongoose schema definitions; run a real MongoDB instance locally or via Atlas.
-- Hedera pricing data is stubbed at `0` pending integration with a pricing oracle.
-- Email delivery falls back to console logging when SMTP credentials are not supplied.
-- Swagger docs are generated from route JSDoc blocks (`src/routes/*.ts`).

@@ -1,7 +1,10 @@
-import { Router } from "express";
+import { Router } from 'express';
 
-import { handleGetTokenBalances, handleGetWalletSummary } from "../controllers/walletController.js";
-import { authenticate } from "../middleware/auth.js";
+import {
+  handleGetTokenBalances,
+  handleGetWalletSummary,
+} from '../controllers/walletController.js';
+import { authenticate } from '../middleware/auth.js';
 
 const walletRouter = Router();
 
@@ -10,8 +13,6 @@ const walletRouter = Router();
  * /api/wallets/{ownerAddress}/tokens:
  *   get:
  *     summary: Fetch Hedera token balances for an account
- *     security:
- *       - bearerAuth: []
  *     tags: [Wallet]
  *     parameters:
  *       - in: path
@@ -32,16 +33,14 @@ const walletRouter = Router();
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ApiMessageResponse'
-*/
-walletRouter.get("/wallets/:ownerAddress/tokens", authenticate, handleGetTokenBalances);
+ */
+walletRouter.get('/wallets/:ownerAddress/tokens', handleGetTokenBalances);
 
 /**
  * @openapi
  * /api/wallets/{ownerAddress}/summary:
  *   get:
  *     summary: Retrieve wallet summary and allocation insights
- *     security:
- *       - bearerAuth: []
  *     tags: [Wallet]
  *     parameters:
  *       - in: path
@@ -62,7 +61,7 @@ walletRouter.get("/wallets/:ownerAddress/tokens", authenticate, handleGetTokenBa
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ApiMessageResponse'
-*/
-walletRouter.get("/wallets/:ownerAddress/summary", authenticate, handleGetWalletSummary);
+ */
+walletRouter.get('/wallets/:ownerAddress/summary', handleGetWalletSummary);
 
 export default walletRouter;

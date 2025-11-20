@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { LOGIN_URL } from '@/config/path';
 import axios from 'axios';
-import { getCookie } from 'cookies-next';
+import { deleteCookie, getCookie } from 'cookies-next';
 
 const client = axios.create({
   baseURL: `${process.env.NEXT_PUBLIC_TERITAGE_API}/api`,
@@ -32,11 +32,14 @@ client.interceptors.response.use(
   async (error) => {
     const originalConfig = error.config;
 
-    if (error?.response && error?.response?.status === 401 && !originalConfig._retry) {
-      originalConfig._retry = true;
-      window.location.replace(LOGIN_URL);
-      // Call refresh token
-      try {
+  if (error?.response && error?.response?.status === 401 && !originalConfig._retry) {
+    originalConfig._retry = true;
+    if (typeof window !== 'undefined') {
+      deleteCookie('teritage_token');
+    }
+    window.location.replace(LOGIN_URL);
+    // Call refresh token
+    try {
         return client(originalConfig);
       } catch (_error: any) {
         if (_error.response && _error.response.data) {
