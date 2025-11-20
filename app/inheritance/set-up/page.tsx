@@ -1,7 +1,11 @@
+'use client';
 import SetUpInheritanceForm from '@/components/forms/setup-inheritance-form';
 import { Separator } from '@/components/ui/separator';
+import { BENEFICIARY_INFO_URL } from '@/config/path';
+import { useRouter } from 'next/navigation';
 
 export default function Setup() {
+  const router = useRouter();
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -9,7 +13,7 @@ export default function Setup() {
         <Separator />
       </div>
 
-      <SetUpInheritanceForm />
+      <SetUpInheritanceForm handleNext={() => router.push(BENEFICIARY_INFO_URL)} />
     </div>
   );
 }

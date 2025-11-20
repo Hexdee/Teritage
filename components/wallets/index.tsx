@@ -1,33 +1,87 @@
-import { ReactNode, useState } from 'react';
-import type { ISelectedWallet } from '@/type';
-import { SelectWallet } from './select-wallet';
-import SelectNewWallet, { ConfirmWalletSelection } from './select-new-wallet';
+/* eslint-disable react-hooks/exhaustive-deps */
+import { ReactNode, useEffect, useState } from 'react';
 import { SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Separator } from '../ui/separator';
 import { ArrowLeft } from '../icons';
-import { CreateUsernameForm } from '../forms/create-username-form';
-import WalletSuccess from './wallet-success';
 import Introduction from '../beneficiary/introduction';
-import WalletSettings from './settings';
 import BeneficiaryInfoForm from '../forms/beneficiary-info-form';
+import TokenAllocation, { formatName } from '@/app/inheritance/token-allocation/page';
+import { useApplications } from '@/context/dashboard-provider';
+import SetUpInheritanceForm from '../forms/setup-inheritance-form';
+import WalletSuccessPage from '@/app/inheritance/success/page';
+import { SelectWallet } from './select-wallet';
+import WalletSettings from './settings';
+import { UpdateTeritagePlanRequest, WalletToken } from '@/type';
+import { CreateUsernameForm } from '../forms/create-username-form';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { updateTeritagePlanApi, userSetUsername } from '@/config/apis';
+import { toast } from 'sonner';
+import { TERITAGES_KEY, USER_PROFILE_KEY } from '@/config/key';
+import { BeneficiaryEntry } from '@/store/useInheritancePlanStore';
+import { getAddress } from 'viem';
 
-type IAddWalletContent = {
-  setCurrentStage: (arg: number) => void;
-  currentStage: number;
-};
-
-export default function AddWalletContent({ setCurrentStage, currentStage }: IAddWalletContent) {
-  const [selectedWallet, setSelectedWallet] = useState<ISelectedWallet | null>(null);
+export default function AddWalletContent() {
+  const queryClient: any = useQueryClient();
+  const { setCurrentStage, currentStage, openSheet, setOpenSheet, teritageData } = useApplications();
+  const [currentWallet, setCurrentWallet] = useState<WalletToken | null>(null);
   const [usernameError, setUsernameError] = useState<string | null>(null);
-  const [isUsernameLoading, setIsUsernameLoading] = useState(false);
+  const [previousStage, setPreviousStage] = useState(0);
 
   const showHeader = ![4, 5].includes(currentStage);
 
-  const handleUsernameNext = (nextStage: number) => (values: { username: string }) => {
-    // placeholder for username submission
-    setUsernameError(null);
-    setCurrentStage(nextStage);
+  const { mutate, isPending } = useMutation({
+    mutationFn: userSetUsername,
+    onSuccess: () => {
+      queryClient.invalidateQueries(USER_PROFILE_KEY);
+      toast.success('Username updated successfully');
+      setCurrentStage(6);
+    },
+    onError: (error: any) => setUsernameError(error?.response?.data?.message || 'An error occured while processing'),
+  });
+
+  const { mutate: mutatePlan, isPending: isMutating } = useMutation({
+    mutationFn: updateTeritagePlanApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries(TERITAGES_KEY);
+      toast.success('Plan updated successfully');
+      setCurrentStage(6);
+    },
+    onError: (error: any) => setUsernameError(error?.response?.data?.message || 'An error occured while processing'),
+  });
+
+  const handleMutatePlan = (values: BeneficiaryEntry[]) => {
+    const payload: UpdateTeritagePlanRequest = {
+      inheritors: values.map((beneficiary) => ({
+        address: getAddress(beneficiary.walletAddress),
+        sharePercentage: Math.round(beneficiary.sharePercentage),
+        name: formatName(beneficiary),
+        email: beneficiary.email.trim(),
+      })),
+      tokens: teritageData?.plan.tokens as any,
+      checkInIntervalSeconds: teritageData?.plan.checkInIntervalSeconds,
+      socialLinks: teritageData?.plan.socialLinks,
+      notifyBeneficiary: teritageData?.plan.notifyBeneficiary,
+    };
+
+    mutatePlan(payload);
   };
+
+  const handleUsernameNext = (values: { username: string }) => {
+    setUsernameError(null);
+    mutate(values);
+  };
+
+  const handleBack = () => {
+    setCurrentStage(currentStage === 6 ? 0 : previousStage);
+  };
+
+  console.log(previousStage);
+
+  useEffect(() => {
+    if (!openSheet) {
+      setCurrentStage(0);
+    }
+  }, [openSheet]);
 
   const EachTitle: Record<number, string> = {
     6: 'Wallet Settings',
@@ -35,46 +89,105 @@ export default function AddWalletContent({ setCurrentStage, currentStage }: IAdd
     8: 'Beneficiary Information',
   };
 
+  // const EachStage: Record<number, ReactNode> = {
+  //   0: <SelectWallet handleNext={() => setCurrentStage(1)} handleViewWallet={() => setCurrentStage(6)} />,
+  //   1: (
+  //     <SelectNewWallet
+  //       handleNext={(wallet) => {
+  //         setSelectedWallet(wallet);
+  //         setCurrentStage(2);
+  //       }}
+  //     />
+  //   ),
+  //   2: (
+  //     <ConfirmWalletSelection
+  //       selectedWallet={selectedWallet}
+  //       handleBack={() => {
+  //         setSelectedWallet(null);
+  //         setCurrentStage(1);
+  //       }}
+  //       handleNext={() => setCurrentStage(3)}
+  //     />
+  //   ),
+  //   3: <CreateUsernameForm handleNext={() => setCurrentStage(4)} />,
+  //   4: <WalletSuccess handleNext={() => setCurrentStage(5)} />,
+  //   5: <Introduction handleNext={() => setCurrentStage(6)} className="mt-2" />,
+  //   6: <WalletSettings setCurrentStage={setCurrentStage} />,
+  //   7: <CreateUsernameForm handleNext={() => setCurrentStage(6)} />,
+  //   8: <BeneficiaryInfoForm handleNext={() => setCurrentStage(6)} />,
+  // };
+
+  const handleNext = (stage: number, previous: number) => {
+    setCurrentStage(stage);
+    setPreviousStage(previous);
+  };
+
   const EachStage: Record<number, ReactNode> = {
-    0: <SelectWallet handleNext={() => setCurrentStage(1)} handleViewWallet={() => setCurrentStage(6)} />,
-    1: (
-      <SelectNewWallet
-        handleNext={(wallet) => {
-          setSelectedWallet(wallet);
-          setCurrentStage(2);
+    0: (
+      <SelectWallet
+        handleNext={() => setCurrentStage(1)}
+        handleViewWallet={(token) => {
+          setCurrentWallet(token);
+          setCurrentStage(6);
+          setPreviousStage(0);
         }}
       />
     ),
-    2: (
-      <ConfirmWalletSelection
-        selectedWallet={selectedWallet}
-        handleBack={() => {
-          setSelectedWallet(null);
-          setCurrentStage(1);
+    1: <Introduction handleNext={() => handleNext(2, 1)} className="mt-2" />,
+    2: <SetUpInheritanceForm handleNext={() => handleNext(3, 2)} />,
+    3: <BeneficiaryInfoForm handleNext={() => handleNext(4, 3)} />,
+    4: <TokenAllocation handleNext={() => handleNext(5, 4)} />,
+    5: (
+      <WalletSuccessPage
+        handleNext={() => {
+          setOpenSheet(false);
+          setCurrentStage(0);
+          setPreviousStage(5);
         }}
-        handleNext={() => setCurrentStage(3)}
       />
     ),
-    3: (
-      <CreateUsernameForm
-        handleNext={handleUsernameNext(4)}
-        errorMessage={usernameError}
-        setErrorMessage={setUsernameError}
-        isLoading={isUsernameLoading}
+    6: (
+      <WalletSettings
+        setCurrentStage={(value) => {
+          setCurrentStage(value);
+          setPreviousStage(6);
+        }}
+        token={currentWallet}
       />
     ),
-    4: <WalletSuccess handleNext={() => setCurrentStage(5)} />,
-    5: <Introduction handleNext={() => setCurrentStage(6)} className="mt-2" />,
-    6: <WalletSettings setCurrentStage={setCurrentStage} />,
-    7: (
-      <CreateUsernameForm
-        handleNext={handleUsernameNext(6)}
-        errorMessage={usernameError}
-        setErrorMessage={setUsernameError}
-        isLoading={isUsernameLoading}
-      />
-    ),
-    8: <BeneficiaryInfoForm handleNext={() => setCurrentStage(6)} />,
+    7: <CreateUsernameForm handleNext={handleUsernameNext} errorMessage={usernameError} setErrorMessage={setUsernameError} isLoading={isPending} />,
+    8: <BeneficiaryInfoForm handleNext={handleMutatePlan} hasFormat isLoading={isMutating} />,
+
+    // 2: (
+    //   <ConfirmWalletSelection
+    //     selectedWallet={selectedWallet}
+    //     handleBack={() => {
+    //       setSelectedWallet(null);
+    //       setCurrentStage(1);
+    //     }}
+    //     handleNext={() => setCurrentStage(3)}
+    //   />
+    // ),
+    // 3: (
+    //   <CreateUsernameForm
+    //     handleNext={handleUsernameNext(4)}
+    //     errorMessage={usernameError}
+    //     setErrorMessage={setUsernameError}
+    //     isLoading={isUsernameLoading}
+    //   />
+    // ),
+    // 4: <WalletSuccess handleNext={() => setCurrentStage(5)} />,
+    // 5: <Introduction handleNext={() => setCurrentStage(6)} className="mt-2" />,
+    // 6: <WalletSettings setCurrentStage={setCurrentStage} />,
+    // 7: (
+    // <CreateUsernameForm
+    //   handleNext={handleUsernameNext(6)}
+    //   errorMessage={usernameError}
+    //   setErrorMessage={setUsernameError}
+    //   isLoading={isUsernameLoading}
+    // />
+    // ),
+    // 8: <BeneficiaryInfoForm handleNext={() => setCurrentStage(6)} />,
   };
 
   return (
@@ -82,15 +195,13 @@ export default function AddWalletContent({ setCurrentStage, currentStage }: IAdd
       {showHeader && (
         <SheetHeader>
           <div className="flex space-x-2 items-center">
-            {currentStage > 0 && (
-              <ArrowLeft role="navigation" className="cursor-pointer" aria-label="navigate backward" onClick={() => setCurrentStage(currentStage - 1)} />
-            )}
+            {currentStage > 0 && <ArrowLeft role="navigation" className="cursor-pointer" aria-label="navigate backward" onClick={handleBack} />}
             <SheetTitle>{EachTitle[currentStage] || 'Add Wallets'}</SheetTitle>
           </div>
           <Separator />
         </SheetHeader>
       )}
-      <div className="px-4">{EachStage[currentStage]}</div>
+      <div className="px-4 overflow-y-auto">{EachStage[currentStage]}</div>
     </>
   );
 }

@@ -5,13 +5,15 @@ import { TERITAGES_KEY, USER_PROFILE_KEY, WALLETS_SUMMARY_KEY, WALLETS_TOKENS_KE
 import { ApiResponse, DashboardContextType, IWalletData, UserProfile, WalletSummaryResponse, WalletTokensResponse } from '@/type';
 import { AxiosError } from 'axios';
 import { useQuery } from '@tanstack/react-query';
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { useAccount } from 'wagmi';
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
 
 export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const { isConnected, address } = useAccount();
+  const [currentStage, setCurrentStage] = useState<number>(0);
+  const [openSheet, setOpenSheet] = useState<boolean>(false);
   const hasWalletAddress = Boolean(isConnected && address);
 
   const {
@@ -23,7 +25,6 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     queryKey: [TERITAGES_KEY, isConnected],
     queryFn: () => getUserTeritageApi(),
     enabled: !!isConnected,
-    retry: 1,
   });
 
   const {
@@ -98,6 +99,16 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         walletsTokenData: walletsTokenData ?? null,
         isLoadingWalletsToken,
         isWalletTokenError,
+
+        // activitiesData,
+        // isLoadingActivities,
+        // isActivitiesError,
+        // activitiesError,
+
+        openSheet,
+        setOpenSheet,
+        currentStage,
+        setCurrentStage,
         walletTokenError: walletTokenError ?? null,
 
         userProfile,

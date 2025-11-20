@@ -5,12 +5,13 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
-import { CONNECT_WALLET_URL, SIGN_UP_URL, WALLET_URL } from '@/config/path';
+import { CONNECT_WALLET_URL, FORGOT_PASSWORD_URL, SIGN_UP_URL, WALLET_URL } from '@/config/path';
 import { useMutation } from '@tanstack/react-query';
 import { getUserTeritageApi, userLogin } from '@/config/apis';
+import { setCookie } from 'cookies-next';
 import { toast } from 'sonner';
 import ShowError from '../errors/display-error';
 import { useState } from 'react';
@@ -44,9 +45,10 @@ export function LoginForm() {
 
   const { mutate, isPending } = useMutation({
     mutationFn: userLogin,
-    onSuccess: async () => {
-      toast.success('Login successfully');
+    onSuccess: async (response: any) => {
+      console.log(response);
       try {
+        await setCookie('teritage_token', response.token);
         await getUserTeritageApi();
         router.replace(WALLET_URL);
       } catch (error) {
@@ -56,6 +58,8 @@ export function LoginForm() {
         }
         const message = (error as any)?.response?.data?.message || (error instanceof Error ? error.message : 'Unable to load Teritage plan');
         setErrorMessage(message);
+      } finally {
+        toast.success('Login successfully');
       }
     },
     onError: (error: any) => setErrorMessage(error?.response?.data?.message || 'An error occured while processing'),
@@ -122,6 +126,11 @@ export function LoginForm() {
             </FormItem>
           )}
         />
+        <div className="flex justify-end">
+          <Link href={FORGOT_PASSWORD_URL}>
+            <p className="text-primary underline">Forgot password?</p>
+          </Link>
+        </div>
         <Button type="submit" className="w-full" loadingText="Please wait..." isLoading={isPending}>
           Continue
         </Button>

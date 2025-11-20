@@ -1,3 +1,4 @@
+import '@/lib/polyfills/server-indexeddb';
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import {
   arbitrum,

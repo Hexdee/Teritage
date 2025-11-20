@@ -9,6 +9,7 @@ import { ZodError } from "zod";
 import { swaggerSpec } from "./docs/swagger.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import authRoutes from "./routes/authRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import teritageRoutes from "./routes/teritageRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
@@ -35,6 +36,7 @@ app.get("/health", (_req, res) => {
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/api/auth", authLimiter, authRoutes);
+app.use("/api", adminRoutes);
 app.use("/api", teritageRoutes);
 app.use("/api", walletRoutes);
 app.use("/api", notificationRoutes);
