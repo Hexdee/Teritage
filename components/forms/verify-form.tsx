@@ -50,7 +50,7 @@ export function VerifyForm() {
     mutationFn: type === 'reset' ? userForgotPasswordVerify : userSignUpVerify,
     onSuccess: async (response: any) => {
       toast.success('User verified successfully');
-      await setCookie('teritage_token', response.verificationToken);
+      await setCookie('teritage_verification_token', response.verificationToken);
       router.push(`${SET_PASSWORD_URL}?email=${email}&type=${type}`);
     },
     onError: (error: any) => setErrorMessage(error?.response?.data?.message || 'An error occured while processing'),

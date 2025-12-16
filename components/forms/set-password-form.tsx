@@ -15,7 +15,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { userResetPassword, userSetPassword } from '@/config/apis';
-import { setCookie, getCookie } from 'cookies-next';
+import { setCookie, getCookie, deleteCookie } from 'cookies-next';
 import ShowError from '../errors/display-error';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -61,6 +61,7 @@ export function SetPasswordForm() {
   const { mutate, isPending } = useMutation({
     mutationFn: type === 'reset' ? userResetPassword : userSetPassword,
     onSuccess: async (response: any) => {
+      deleteCookie('teritage_verification_token');
       if (type === 'reset') {
         toast.success('Password updated successfully');
         router.push(LOGIN_URL);
@@ -74,7 +75,11 @@ export function SetPasswordForm() {
 
   async function onSubmit(values: z.infer<typeof FormSchema>) {
     setErrorMessage(null);
-    const verificationToken = (await getCookie('teritage_token')) || '';
+    const verificationToken = (await getCookie('teritage_verification_token')) || '';
+    if (!verificationToken) {
+      setErrorMessage('Verification token missing. Please restart the process.');
+      return;
+    }
     const data = { email, password: values.password, verificationToken };
     mutate(data);
   }
