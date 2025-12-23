@@ -4,7 +4,7 @@
 
 Onchain Finance & RWA Track · Hedera Africa Hackathon 2025
 
-[Demo Video](https://vimeo.com/1132648167/b2a2554523?share=copy&fl=sv&fe=ci) · [Pitch Deck](https://docs.google.com/presentation/d/1sDLyhy8KStPlNbwU438tB1EzZSPVlyvN/edit?slide=id.p1#slide=id.p1) · [DoraHacks BUIDL](https://dorahacks.io/buidl/35830)
+[Demo Video](https://vimeo.com/1132648167/b2a2554523?share=copy&fl=sv&fe=ci) · [Pitch Deck](https://docs.google.com/presentation/d/1sDLyhy8KStPlNbwU438tB1EzZSPVlyvN/edit?slide=id.p1#slide=id.p1) · [DoraHacks BUIDL](https://dorahacks.io/buidl/35830) · [Hedera Developer Certificate](https://drive.google.com/file/d/1Uq7d_qDt8H5reiwHQahdF9yhIGAWvuI5/view?usp=drive_link)
 
 </div>
 
