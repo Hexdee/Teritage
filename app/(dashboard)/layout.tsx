@@ -143,9 +143,8 @@ export default function Layout({ children }: { children: ReactNode }) {
                   <div className="w-px h-6 bg-border" />
                 </div>
 
-                <div className="">
-                  <CustomConnectButton />
-                </div>
+
+                <CustomConnectButton />
 
                 <UserCheckIn />
                 <UserProfile />
