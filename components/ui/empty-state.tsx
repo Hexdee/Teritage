@@ -18,7 +18,7 @@ export default function EmptyState({ hasButton }: IEmptyState) {
           <Skeleton className="h-4 w-full" />
         </div>
       </div>
-      <div className="text-center mx-auto w-[70%] space-y-4">
+      <div className="text-center mx-auto lg:w-[70%] w-full space-y-4">
         <div className="">
           <div className="flex justify-center">
             <Inbox size={120} className="mb-4" />

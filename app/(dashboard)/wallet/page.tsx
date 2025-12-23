@@ -67,7 +67,7 @@ export default function Wallet() {
 
   if (!isConnected || !address) {
     return (
-      <div className="h-[70vh] flex items-center px-20">
+      <div className="h-[70vh] flex items-center lg:px-20">
         <EmptyState hasButton />
       </div>
     );
@@ -75,7 +75,7 @@ export default function Wallet() {
 
   if (isWalletError || isWalletTokenError) {
     return (
-      <div className="h-[70vh] flex items-center px-20">
+      <div className="h-[70vh] flex items-center lg:px-20">
         <div className="w-full space-y-6">
           <EmptyState />
           {errorMessage && <p className="text-center text-sm text-destructive">{errorMessage}</p>}
@@ -86,7 +86,7 @@ export default function Wallet() {
 
   if (!summary) {
     return (
-      <div className="h-[70vh] flex items-center px-20">
+      <div className="h-[70vh] flex items-center lg:px-20">
         <EmptyState hasButton />
       </div>
     );

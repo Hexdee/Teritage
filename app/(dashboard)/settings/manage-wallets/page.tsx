@@ -144,7 +144,7 @@ export default function ManageWalletsSettings() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {walletAddresses.map((address) => (
             <div key={address} className="p-1 border border-primary/50 rounded-md">
-              <div className="bg-primary rounded-md p-4 space-y-6">
+              <div className="bg-primary dark:bg-transparent rounded-md p-4 space-y-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar>

@@ -122,13 +122,13 @@ export default function ManageAllocation({ beneficiary, totalValue, setCurrentSt
         </div>
 
         <div className="text-sm text-muted-foreground space-y-1">
-          <div className="grid grid-cols-2">
+          <div className="grid md:grid-cols-2">
             <span className="mr-2">Email:</span>
-            <span className="text-inverse flex justify-end">{beneficiary.email || 'N/A'}</span>
+            <span className="text-inverse flex justify-start md:justify-end">{beneficiary.email || 'N/A'}</span>
           </div>
-          <div className="grid grid-cols-2">
-            <span className="mr-2">Wallet:</span>
-            <span className="text-inverse font-mono flex justify-end">{beneficiary.full_wallet_address}</span>
+          <div className="grid grid-cols-1 md:grid-cols-2">
+            <span className="mr-2 md:mr-0">Wallet:</span>
+            <span className="text-inverse font-mono flex justify-start md:justify-end">{beneficiary.full_wallet_address}</span>
           </div>
         </div>
 
@@ -147,10 +147,10 @@ export default function ManageAllocation({ beneficiary, totalValue, setCurrentSt
         <div className="text-sm text-muted-foreground space-y-2">
           <p>Allotted Percentage</p>
           <div className="flex items-center gap-4">
-            <div className="bg-[#F2F2F20D] w-[90%] p-2.5 py-4 rounded-md">
+            <div className="bg-[#F2F2F20D] w-[80%] md:w-[90%] p-2.5 py-4 rounded-md">
               <Slider defaultValue={newAllocation} max={100} step={1} onValueChange={(value) => setNewAllocation(value)} />
             </div>
-            <div className="bg-[#F2F2F20D] w-[10%] p-2.5 py-4 rounded-md text-white flex items-center justify-center">{newAllocation[0]}%</div>
+            <div className="bg-[#F2F2F20D] w-[20%] md:w-[10%] p-2.5 py-4 rounded-md text-white flex items-center justify-center">{newAllocation[0]}%</div>
           </div>
         </div>
       </div>
