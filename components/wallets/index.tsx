@@ -1,6 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { ReactNode, useEffect, useState } from 'react';
 import { SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { Separator } from '../ui/separator';
 import { ArrowLeft } from '../icons';
 import Introduction from '../beneficiary/introduction';
@@ -21,6 +23,7 @@ import { BeneficiaryEntry } from '@/store/useInheritancePlanStore';
 import { getAddress } from 'viem';
 
 export default function AddWalletContent() {
+  const isDesktop = useMediaQuery('(min-width: 768px)');
   const queryClient: any = useQueryClient();
   const { setCurrentStage, currentStage, openSheet, setOpenSheet, teritageData } = useApplications();
   const [currentWallet, setCurrentWallet] = useState<WalletToken | null>(null);
@@ -193,13 +196,25 @@ export default function AddWalletContent() {
   return (
     <>
       {showHeader && (
-        <SheetHeader>
-          <div className="flex space-x-2 items-center">
-            {currentStage > 0 && <ArrowLeft role="navigation" className="cursor-pointer" aria-label="navigate backward" onClick={handleBack} />}
-            <SheetTitle>{EachTitle[currentStage] || 'Add Wallets'}</SheetTitle>
-          </div>
-          <Separator />
-        </SheetHeader>
+        <>
+          {isDesktop ? (
+            <SheetHeader>
+              <div className="flex space-x-2 items-center">
+                {currentStage > 0 && <ArrowLeft role="navigation" className="cursor-pointer" aria-label="navigate backward" onClick={handleBack} />}
+                <SheetTitle>{EachTitle[currentStage] || 'Add Wallets'}</SheetTitle>
+              </div>
+              <Separator />
+            </SheetHeader>
+          ) : (
+            <DrawerHeader>
+              <div className="flex space-x-2 items-center">
+                {currentStage > 0 && <ArrowLeft role="navigation" className="cursor-pointer" aria-label="navigate backward" onClick={handleBack} />}
+                <DrawerTitle className="text-left">{EachTitle[currentStage] || 'Add Wallets'}</DrawerTitle>
+              </div>
+              <Separator />
+            </DrawerHeader>
+          )}
+        </>
       )}
       <div className="px-4 overflow-y-auto">{EachStage[currentStage]}</div>
     </>

@@ -19,7 +19,7 @@ export default function AllocationBreakdown({ handleNext, beneficiary, allocated
   return (
     <div className="space-y-12">
       <div className="relative">
-        <p className="text-muted text-xs absolute right-[38%] top-12">Assigned Allocation</p>
+        <p className="text-muted text-xs absolute right-[30%] lg:right-[38%] md:top-12 top-24">Assigned Allocation</p>
         <CircularProgress value={assignedPercentage} textClassName="mt-4" />
       </div>
 

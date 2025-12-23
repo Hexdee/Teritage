@@ -171,7 +171,7 @@ export default function CheckInProtocolForm() {
         </Button>
 
         <div className="flex justify-end">
-          <Button type="submit" className="w-fit" size="sm" disabled={isSubmitting}>
+          <Button type="submit" className="w-full md:w-fit" size="sm" disabled={isSubmitting}>
             Save changes
           </Button>
         </div>

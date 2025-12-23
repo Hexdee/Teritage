@@ -3,7 +3,8 @@ import DataTable from '@/components/ui/data-table';
 import { DashboardSkeleton } from '@/components/ui/loading';
 import EmptyState from '@/components/ui/empty-state';
 import { useApplications } from '@/context/dashboard-provider';
-import { columns } from './columns';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { columns, StatusCell, TypeCell } from './columns';
 
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat('en-US', {
@@ -77,11 +78,31 @@ export default function ActivityPage() {
     }
   });
 
-  console.log({ data });
-
   return (
     <div className="text-inverse">
-      <DataTable columns={columns} data={data} />
+      <div className="hidden md:block">
+        <DataTable columns={columns} data={data} />
+      </div>
+
+      <div className="md:hidden grid grid-cols-1 gap-4">
+        {data.map((item, index) => (
+          <Card key={index} className="overflow-hidden">
+            <CardHeader className="pb-2">
+              <TypeCell data={item} />
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex justify-between py-1 border-b border-border/50">
+                <span className="text-muted-foreground">Date</span>
+                <span className="font-medium text-right">{item.date}</span>
+              </div>
+              <div className="flex justify-between py-1 items-center">
+                <span className="text-muted-foreground">Status</span>
+                <StatusCell data={item} />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
