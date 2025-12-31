@@ -2,7 +2,7 @@
 
 import { ReactNode, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Separator } from '@/components/ui/separator';
 import { Eye } from 'lucide-react';
@@ -135,58 +135,31 @@ export const ActionCell = ({ data }: ActionCellProps) => {
 
   return (
     <div className="flex justify-end">
-      {isDesktop ? (
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button startIcon={<Eye size={16} />} size="sm" variant="secondary">
-              View
-            </Button>
-          </SheetTrigger>
-          <SheetContent className="overflow-y-auto">
-            <SheetHeader>
-              <div className="flex space-x-2 items-center">
-                {currentStage > 1 && (
-                  <ArrowLeft
-                    role="navigation"
-                    className="cursor-pointer"
-                    aria-label="navigate backward"
-                    onClick={() => setCurrentStage(currentStage - 1)}
-                  />
-                )}
-                <SheetTitle>{EachTitle[currentStage]}</SheetTitle>
-              </div>
-              <Separator />
-            </SheetHeader>
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button startIcon={<Eye size={16} />} size="sm" variant="secondary">
+            View
+          </Button>
+        </SheetTrigger>
+        <SheetContent className={cn('overflow-y-auto', !isDesktop && 'max-h-[90vh]')} side={isDesktop ? 'right' : 'bottom'}>
+          <SheetHeader>
+            <div className="flex space-x-2 items-center">
+              {currentStage > 1 && (
+                <ArrowLeft
+                  role="navigation"
+                  className="cursor-pointer"
+                  aria-label="navigate backward"
+                  onClick={() => setCurrentStage(currentStage - 1)}
+                />
+              )}
+              <SheetTitle className="text-left">{EachTitle[currentStage]}</SheetTitle>
+            </div>
+            <Separator />
+          </SheetHeader>
 
-            <div className="p-4">{EachStage[currentStage]}</div>
-          </SheetContent>
-        </Sheet>
-      ) : (
-        <Drawer>
-          <DrawerTrigger asChild>
-            <Button startIcon={<Eye size={16} />} size="sm" variant="secondary">
-              View
-            </Button>
-          </DrawerTrigger>
-          <DrawerContent className="max-h-[90vh]">
-            <DrawerHeader>
-              <div className="flex space-x-2 items-center">
-                {currentStage > 1 && (
-                  <ArrowLeft
-                    role="navigation"
-                    className="cursor-pointer"
-                    aria-label="navigate backward"
-                    onClick={() => setCurrentStage(currentStage - 1)}
-                  />
-                )}
-                <DrawerTitle className="text-left">{EachTitle[currentStage]}</DrawerTitle>
-              </div>
-              <Separator className="mt-2" />
-            </DrawerHeader>
-            <div className="p-4 overflow-y-auto">{EachStage[currentStage]}</div>
-          </DrawerContent>
-        </Drawer>
-      )}
+          <div className="p-4 overflow-y-auto">{EachStage[currentStage]}</div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

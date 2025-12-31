@@ -30,7 +30,7 @@ export const SelectWallet = ({ handleNext, handleViewWallet }: ISelectWalletNext
                 </div>
 
                 <div>
-                  <p className="font-medium capitalize">{userProfile?.username || userProfile?.name}</p>
+                  <p className="font-medium capitalize lowercase">{userProfile?.username || userProfile?.name}</p>
                   <p className="text-muted/70">${token.priceUsd}</p>
                 </div>
               </div>

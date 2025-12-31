@@ -92,3 +92,5 @@ export const usercheckIn = (payload: { triggeredBy: string; note: string; timest
   client.post('/teritages/checkins', payload).then((response) => response.data);
 
 export const getCheckIns = (): Promise<ICheckIn> => client.get('teritages/checkins').then((response) => response.data);
+
+export const getNotifications = (): Promise<ApiResponse> => client.get('/notifications').then((response) => response.data);

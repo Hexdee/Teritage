@@ -3,9 +3,21 @@ import BeneficiaryInfoForm from '@/components/forms/beneficiary-info-form';
 import { Separator } from '@/components/ui/separator';
 import { TOKEN_ALLOCATION_URL } from '@/config/path';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { useAccount } from 'wagmi';
 
 export default function BeneficiaryInformation() {
   const router = useRouter();
+  const { isConnected } = useAccount();
+
+    const handleNext = () => {
+    if (!isConnected) {
+      toast.error("Kindly connect wallet")
+    } else {
+      router.push(TOKEN_ALLOCATION_URL)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -16,7 +28,7 @@ export default function BeneficiaryInformation() {
         <Separator />
       </div>
 
-      <BeneficiaryInfoForm handleNext={() => router.push(TOKEN_ALLOCATION_URL)} />
+      <BeneficiaryInfoForm handleNext={handleNext} />
     </div>
   );
 }

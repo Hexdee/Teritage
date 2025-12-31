@@ -1,5 +1,4 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { Button } from './ui/button';
 import { CheckIcon, HealthIcon } from './icons';
 import { Separator } from './ui/separator';
@@ -133,37 +132,20 @@ export function UserCheckIn({ buttonClassName }: { buttonClassName?: string }) {
 
   return (
     <>
-      {isDesktop ? (
-        <Sheet>
-          <SheetTrigger className="w-full">
-            <Button variant="secondary" startIcon={<HealthIcon className="text-[#F2F2F2]" />} className={buttonClassName}>
-              Check-In
-            </Button>
-          </SheetTrigger>
-          <SheetContent className="overflow-y-auto pb-5" side="right">
-            <SheetHeader>
-              <SheetTitle>Check-In</SheetTitle>
-              <Separator />
-            </SheetHeader>
-            <div className="px-4 space-y-8 mt-4">{content}</div>
-          </SheetContent>
-        </Sheet>
-      ) : (
-        <Drawer>
-          <DrawerTrigger className="w-full">
-            <Button variant="secondary" startIcon={<HealthIcon className="text-[#F2F2F2]" />} className={buttonClassName}>
-              Check-In
-            </Button>
-          </DrawerTrigger>
-          <DrawerContent className="max-h-[90vh]">
-            <DrawerHeader>
-              <DrawerTitle className="text-left">Check-In</DrawerTitle>
-              <Separator />
-            </DrawerHeader>
-            <div className="px-4 space-y-8 overflow-y-auto pb-10">{content}</div>
-          </DrawerContent>
-        </Drawer>
-      )}
+      <Sheet>
+        <SheetTrigger className="w-full">
+          <Button variant="secondary" startIcon={<HealthIcon className="text-[#F2F2F2]" />} className={buttonClassName}>
+            Check-In
+          </Button>
+        </SheetTrigger>
+        <SheetContent className="overflow-y-auto pb-5" side={isDesktop ? 'right' : 'bottom'}>
+          <SheetHeader>
+            <SheetTitle>Check-In</SheetTitle>
+            <Separator />
+          </SheetHeader>
+          <div className="px-4 space-y-8 mt-4">{content}</div>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

@@ -107,7 +107,7 @@ export default function BeneficiaryInfoForm({ handleNext, hasFormat, isLoading, 
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-8">
         {fields.map((field, index) => (
           <div key={field.id} className="space-y-4 rounded-lg border p-4">
             <div className="flex items-center justify-between">
@@ -249,12 +249,13 @@ export default function BeneficiaryInfoForm({ handleNext, hasFormat, isLoading, 
           {form.formState.errors.beneficiaries?.root?.message && <p className="text-sm text-destructive">{form.formState.errors.beneficiaries.root.message}</p>}
         </div>
 
-        <div className="flex gap-2">
+        <div className="md:flex md:gap-2 space-y-2.5 md:space-y-0">
           {newBeneficiary && (
             <Button
               type="button"
               variant="secondary"
               className="flex items-center gap-2"
+              startIcon={<Plus className="h-4 w-4" />}
               onClick={() =>
                 append({
                   firstName: '',
@@ -266,7 +267,7 @@ export default function BeneficiaryInfoForm({ handleNext, hasFormat, isLoading, 
                 })
               }
             >
-              <Plus className="h-4 w-4" /> Add Another Beneficiary
+               Add Another Beneficiary
             </Button>
           )}
 
