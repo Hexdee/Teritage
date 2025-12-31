@@ -49,8 +49,6 @@ export default function ManageAllocation({ beneficiary, totalValue, setCurrentSt
     onError: (error: any) => setErrorField(error?.response?.data?.message || 'An error occured while processing'),
   });
 
-  console.log({ teritageData });
-
   const handleChangeAllocation = () => {
     setErrorField(null);
     const inheritors = teritageData?.plan.inheritors.map((item) => {
@@ -64,8 +62,6 @@ export default function ManageAllocation({ beneficiary, totalValue, setCurrentSt
     if (totalShare && totalShare > 100) {
       setErrorField('Total share cannot exceed 100%');
     } else {
-      console.log(inheritors);
-
       const payload: UpdateTeritagePlanRequest = {
         inheritors,
         tokens: teritageData?.plan.tokens as any,

@@ -20,10 +20,11 @@ const formSchema = z.object({
   socialLinks: z
     .array(
       z.object({
-        url: z.string().url('Please enter a valid URL'),
+        url: z.string().trim().refine((val) => val === "" || z.string().url().safeParse(val).success, {
+          message: "Please enter a valid URL",
+        }),
       })
     )
-    .min(1, 'Add at least one social link'),
 });
 
 type FormValues = z.infer<typeof formSchema>;

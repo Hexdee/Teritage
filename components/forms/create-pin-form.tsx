@@ -27,8 +27,7 @@ export function CreatePinForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof FormSchema>) {
-    console.log(values);
+  function onSubmit() {
     router.push(SUCCESS_CREATE_PIN_URL);
   }
 

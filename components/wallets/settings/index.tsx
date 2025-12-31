@@ -60,7 +60,7 @@ export default function WalletSettings({ setCurrentStage, token }: IWalletSettin
             <p className="font-medium">Wallet Name</p>
           </div>
           <div className="flex space-x-2 items-center">
-            <p className="text-muted capitalize">{userProfile?.username || userProfile?.name}</p>
+            <p className="text-muted capitalize lowercase">{userProfile?.username || userProfile?.name}</p>
             <ChevronRight size={20} />
           </div>
         </div>

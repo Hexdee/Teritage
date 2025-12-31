@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { ReactNode, useEffect, useState } from 'react';
 import { SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Separator } from '../ui/separator';
 import { ArrowLeft } from '../icons';
@@ -77,8 +77,6 @@ export default function AddWalletContent() {
   const handleBack = () => {
     setCurrentStage(currentStage === 6 ? 0 : previousStage);
   };
-
-  console.log(previousStage);
 
   useEffect(() => {
     if (!openSheet) {
@@ -196,27 +194,15 @@ export default function AddWalletContent() {
   return (
     <>
       {showHeader && (
-        <>
-          {isDesktop ? (
-            <SheetHeader>
-              <div className="flex space-x-2 items-center">
-                {currentStage > 0 && <ArrowLeft role="navigation" className="cursor-pointer" aria-label="navigate backward" onClick={handleBack} />}
-                <SheetTitle>{EachTitle[currentStage] || 'Add Wallets'}</SheetTitle>
-              </div>
-              <Separator />
-            </SheetHeader>
-          ) : (
-            <DrawerHeader>
-              <div className="flex space-x-2 items-center">
-                {currentStage > 0 && <ArrowLeft role="navigation" className="cursor-pointer" aria-label="navigate backward" onClick={handleBack} />}
-                <DrawerTitle className="text-left">{EachTitle[currentStage] || 'Add Wallets'}</DrawerTitle>
-              </div>
-              <Separator />
-            </DrawerHeader>
-          )}
-        </>
+        <SheetHeader>
+          <div className="flex space-x-2 items-center">
+            {currentStage > 0 && <ArrowLeft role="navigation" className="cursor-pointer" aria-label="navigate backward" onClick={handleBack} />}
+            <SheetTitle className="text-left">{EachTitle[currentStage] || 'Add Wallets'}</SheetTitle>
+          </div>
+          <Separator />
+        </SheetHeader>
       )}
-      <div className="px-4 overflow-y-auto">{EachStage[currentStage]}</div>
+      <div className="px-4 overflow-y-auto py-4 -mt-8">{EachStage[currentStage]}</div>
     </>
   );
 }

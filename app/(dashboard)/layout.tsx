@@ -11,6 +11,7 @@ import { DashboardProvider } from '@/context/dashboard-provider';
 import { CustomConnectButton } from '@/components/ui/connect-button';
 import { UserCheckIn } from '@/components/check-in';
 import UserProfile, { UserProfileImage } from '@/components/profile-sheet';
+import NotificationSheet from '@/components/notification-sheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -69,14 +70,18 @@ export default function Layout({ children }: { children: ReactNode }) {
             </div>
 
             <div className="flex justify-between space-x-4 items-center">
-              <div className="flex items-center space-x-4">
-                <div className="w-px h-6 bg-border" />
-                <div className="space-x-2 flex items-center">
-                  <div className="w-2 h-2 bg-destructive rounded-full" />
-                  <NotificationIcon />
-                </div>
-                <div className="w-px h-6 bg-border" />
-              </div>
+              <NotificationSheet
+                trigger={
+                  <div className="flex items-center space-x-4">
+                    <div className="w-px h-6 bg-border" />
+                    <div className="space-x-2 flex items-center">
+                      <div className="w-2 h-2 bg-destructive rounded-full" />
+                      <NotificationIcon />
+                    </div>
+                    <div className="w-px h-6 bg-border" />
+                  </div>
+                }
+              />
 
               <Popover>
                 <PopoverTrigger>
@@ -91,6 +96,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                   <Button startIcon={<LogOut size={18} />} onClick={handleLogout} variant="secondary" className="w-full flex justify-start">
                     Logout
                   </Button>
+                  <p className="text-center mt-2">Need some testnet token? <span className='text-primary'>Click here</span></p>
                 </PopoverContent>
               </Popover>
               <Sheet open={openSheet} onOpenChange={setOpenSheet}>
@@ -134,14 +140,18 @@ export default function Layout({ children }: { children: ReactNode }) {
                   <SearchInput inputClassName="w-[200px] md:w-[300px]" />
                 </div>
 
-                <div className="flex items-center space-x-4">
-                  <div className="w-px h-6 bg-border" />
-                  <div className="space-x-2 flex items-center">
-                    <div className="w-2 h-2 bg-destructive rounded-full" />
-                    <NotificationIcon />
-                  </div>
-                  <div className="w-px h-6 bg-border" />
-                </div>
+                <NotificationSheet
+                  trigger={
+                    <button className="flex items-center space-x-4">
+                      <div className="w-px h-6 bg-border" />
+                      <div className="space-x-2 flex items-center">
+                        <div className="w-2 h-2 bg-destructive rounded-full" />
+                        <NotificationIcon />
+                      </div>
+                      <div className="w-px h-6 bg-border" />
+                    </button>
+                  }
+                />
 
 
                 <CustomConnectButton />

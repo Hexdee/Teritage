@@ -6,6 +6,8 @@ import { ReactNode } from 'react';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { CustomConnectButton } from '@/components/ui/connect-button';
+import Link from 'next/link';
+import { WALLET_URL } from '@/config/path';
 
 export default function Layout({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -18,17 +20,19 @@ export default function Layout({ children }: { children: ReactNode }) {
 
         <CustomConnectButton buttonClassName="hidden lg:flex" />
 
+<Link href={WALLET_URL}>
         <div className="flex space-x-2 items-center text-inverse">
           <Image src="/logo.png" width={32} height={34} alt="logo" />
           <p className="text-lg">Teritage</p>
         </div>
+</Link>
       </div>
 
       <CustomConnectButton buttonClassName="lg:hidden flex gap-2" />
 
       <div className="flex justify-center h-full items-center w-full">
         <Card className="sm:max-w-md sm:min-w-md max-h-[75vh] overflow-y-auto w-full">
-          <CardContent className="sm:max-w-md sm:min-w-md h-full w-full">{children}</CardContent>
+          <CardContent className="sm:max-w-md sm:min-w-md h-full w-full overflow-y-auto">{children}</CardContent>
         </Card>
       </div>
     </div>

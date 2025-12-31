@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { ReactNode } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Separator } from '@/components/ui/separator';
 import CurrencyText from '@/components/ui/currency-text';
@@ -110,37 +110,20 @@ export const ActionCell = () => {
 
   return (
     <div className="flex justify-end">
-      {isDesktop ? (
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button size="sm" className="w-fit py-1 px-2.5 h-8 text-sm font-normal" variant="secondary">
-              View
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Tokens</SheetTitle>
-              <Separator />
-            </SheetHeader>
-            {content}
-          </SheetContent>
-        </Sheet>
-      ) : (
-        <Drawer>
-          <DrawerTrigger asChild>
-            <Button size="sm" className="w-fit py-1 px-2.5 h-8 text-sm font-normal" variant="secondary">
-              View
-            </Button>
-          </DrawerTrigger>
-          <DrawerContent className="max-h-[90vh]">
-            <DrawerHeader>
-              <DrawerTitle className="text-left">Tokens</DrawerTitle>
-              <Separator />
-            </DrawerHeader>
-            <div className="overflow-y-auto">{content}</div>
-          </DrawerContent>
-        </Drawer>
-      )}
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button size="sm" className="w-fit py-1 px-2.5 h-8 text-sm font-normal" variant="secondary">
+            View
+          </Button>
+        </SheetTrigger>
+        <SheetContent className={cn(!isDesktop && 'max-h-[90vh] overflow-y-auto')} side={isDesktop ? 'right' : 'bottom'}>
+          <SheetHeader>
+            <SheetTitle className="text-left">Tokens</SheetTitle>
+            <Separator />
+          </SheetHeader>
+          {content}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

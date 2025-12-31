@@ -46,7 +46,6 @@ export function LoginForm() {
   const { mutate, isPending } = useMutation({
     mutationFn: userLogin,
     onSuccess: async (response: any) => {
-      console.log(response);
       try {
         await setCookie('teritage_token', response.token);
         await getUserTeritageApi();
