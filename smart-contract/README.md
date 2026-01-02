@@ -21,9 +21,9 @@ When the owner misses the check-in deadline, any inheritor can call `claimInheri
 ## Getting Started
 
 ```bash
-pnpm install
-pnpm build
-pnpm test
+yarn install
+yarn build
+yarn test
 ```
 
 The tests deploy the contract locally, patch the HTS precompile address with the mock implementation, and exercise:
@@ -60,7 +60,7 @@ The contract emits events for plan lifecycle changes, check-ins, and distributio
 `hardhat.config.js` includes a `hederaTestnet` network preset. Supply `HEDERA_TESTNET_RPC_URL` and `HEDERA_TESTNET_PRIVATE_KEY` in a `.env` file to deploy directly to Hedera testnet via Hardhat:
 
 ```bash
-pnpm hardhat run --network hederaTestnet scripts/deploy.js
+yarn hardhat run --network hederaTestnet scripts/deploy.js
 ```
 
 Adjust deployment scripts as needed for custom environments or production infrastructure.

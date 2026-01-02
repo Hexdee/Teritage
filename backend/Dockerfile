@@ -12,30 +12,34 @@ WORKDIR /app
 # Set production environment
 ENV NODE_ENV="production"
 
-# Install pnpm
-ARG PNPM_VERSION=latest
-RUN npm install -g pnpm@$PNPM_VERSION
+# Install Yarn (Classic)
+ARG YARN_VERSION=1.22.22
+RUN corepack enable && corepack prepare "yarn@${YARN_VERSION}" --activate
 
 
 # Throw-away build stage to reduce size of final image
 FROM base AS build
+
+# Use development mode to install devDependencies
+ENV NODE_ENV="development"
 
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3
 
 # Install node modules
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile --prod=false
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
 
 # Copy application code
 COPY . .
 
 # Build application
-RUN pnpm run build
+RUN yarn run build
 
-# Remove development dependencies
-RUN pnpm prune --prod
+# Reinstall dependencies in production mode to drop devDependencies
+ENV NODE_ENV="production"
+RUN rm -rf node_modules && yarn install --frozen-lockfile --production=true
 
 
 # Final stage for app image
@@ -46,4 +50,4 @@ COPY --from=build /app /app
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
-CMD [ "pnpm", "run", "start" ]
+CMD [ "yarn", "run", "start" ]

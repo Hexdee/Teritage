@@ -102,7 +102,7 @@ This monorepo contains three packages:
 ## Prerequisites
 
 - **Node.js 20+** (LTS)
-- **pnpm 9+** (`npm install -g pnpm`)
+- **Yarn 1.22+** (`corepack prepare yarn@1.22.22 --activate` or `npm install -g yarn@1.22.22`)
 - **MongoDB** (Atlas URI or local instance)
 - **Hedera Testnet account** with private key for the relayer wallet
 - **SMTP credentials** (for transactional emails; can use Mailtrap for testing)
@@ -121,14 +121,14 @@ This monorepo contains three packages:
 2. **Install root/front-end dependencies**
 
    ```bash
-   pnpm install          # installs app/ dependencies via workspace
+   yarn install          # installs app/ dependencies
    ```
 
 3. **Install backend dependencies**
 
    ```bash
    cd backend
-   pnpm install
+   yarn install
    cd ..
    ```
 
@@ -136,7 +136,7 @@ This monorepo contains three packages:
 
    ```bash
    cd smart-contract
-   pnpm install
+   yarn install
    cd ..
    ```
 
@@ -157,7 +157,7 @@ This monorepo contains three packages:
 
    ```bash
    cd smart-contract
-   pnpm test               # runs Hardhat tests against the contract
+   yarn test               # runs Hardhat tests against the contract
    ```
 
    For on-chain demo we rely on the deployed Testnet contract, so no local node is required.
@@ -166,7 +166,7 @@ This monorepo contains three packages:
 
    ```bash
    cd backend
-   pnpm dev                # starts http://localhost:4000 with Hot Reload
+   yarn dev                # starts http://localhost:4000 with Hot Reload
    ```
 
    - Swagger docs: http://localhost:4000/api/docs
@@ -174,7 +174,7 @@ This monorepo contains three packages:
 
 3. **Frontend**
    ```bash
-   pnpm dev                # from repository root
+   yarn dev                # from repository root
    ```
    - Access the UI at http://localhost:3000
    - Use the demo credentials supplied in the submission notes or create new accounts.
@@ -216,9 +216,9 @@ SOCKET_PING_TIMEOUT=60000
 
 | Package         | Command                                     | Description                                   |
 | --------------- | ------------------------------------------- | --------------------------------------------- |
-| Frontend        | `pnpm lint`                                 | Next.js linting and type checks.              |
-| Backend         | `cd backend && pnpm test` _(if configured)_ | API tests (add Vitest suites as needed).      |
-| Smart Contracts | `cd smart-contract && pnpm test`            | Hardhat tests covering ERC-20/HTS/HBAR flows. |
+| Frontend        | `yarn lint`                                 | Next.js linting and type checks.              |
+| Backend         | `cd backend && yarn test` _(if configured)_ | API tests (add Vitest suites as needed).      |
+| Smart Contracts | `cd smart-contract && yarn test`            | Hardhat tests covering ERC-20/HTS/HBAR flows. |
 
 For end-to-end verification, run the demo script in `smart-contract/scripts/deploy-and-claim.js` to exercise the claim path on Hedera Testnet.
 

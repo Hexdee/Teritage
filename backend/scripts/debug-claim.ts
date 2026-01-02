@@ -22,7 +22,7 @@ const iface = new Interface(CLAIM_ABI);
 const ownerAddress = process.argv[2];
 
 if (!ownerAddress) {
-  console.error("Usage: pnpm exec tsx scripts/debug-claim.ts <owner-address>");
+  console.error("Usage: yarn tsx scripts/debug-claim.ts <owner-address>");
   process.exit(1);
 }
 

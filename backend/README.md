@@ -15,11 +15,11 @@ This service powers the off-chain experience for Teritage. It persists sensitive
 ## Setup
 
 ```bash
-pnpm install
-pnpm dev        # start development server with ts-node-dev
-pnpm build      # type-check and compile to dist/
-pnpm start      # run the compiled server
-pnpm lint       # lint TypeScript source
+yarn install
+yarn dev        # start development server with ts-node-dev
+yarn build      # type-check and compile to dist/
+yarn start      # run the compiled server
+yarn lint       # lint TypeScript source
 ```
 
 ### Environment variables
