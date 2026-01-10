@@ -186,7 +186,7 @@ export default function BeneficiaryInfoForm({ handleNext, hasFormat, isLoading, 
             <div className="space-y-4 pt-2">
               <div className="space-y-1">
                 <h4 className="text-xs font-semibold uppercase text-muted-foreground">Verification Method</h4>
-                <p className="text-[10px] text-muted-foreground">Provide at least one method to verify the beneficiary.</p>
+                <p className="text-[10px] text-muted-foreground">Provide at least one method to verify the beneficiary. Note: You can enter wallet address later in the dashboard</p>
               </div>
 
               <FormField
