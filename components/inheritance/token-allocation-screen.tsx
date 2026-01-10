@@ -380,7 +380,7 @@ export default function TokenAllocation({ handleNext }: TokenAllocationProps) {
         address: token.type === 'HBAR' ? ZERO_ADDRESS : getAddress(token.address as string),
       }));
 
-      const inheritorAddresses = beneficiaries.map((beneficiary) => getAddress(beneficiary.walletAddress));
+      const inheritorAddresses = beneficiaries.map((beneficiary) => getAddress(beneficiary.walletAddress || ''));
       const shares = beneficiaries.map((beneficiary) => Math.round(beneficiary.sharePercentage * 100));
 
       const sanitizedSocialLinks = socialLinks.map((link) => link.url.trim()).filter((url) => url.length > 0);
@@ -390,7 +390,7 @@ export default function TokenAllocation({ handleNext }: TokenAllocationProps) {
       const backendPayload = {
         ownerAddress: getAddress(address),
         inheritors: beneficiaries.map((beneficiary) => ({
-          address: getAddress(beneficiary.walletAddress),
+          address: getAddress(beneficiary.walletAddress || ''),
           sharePercentage: Math.round(beneficiary.sharePercentage),
           name: formatName(beneficiary),
           email: beneficiary.email.trim(),
@@ -457,7 +457,7 @@ export default function TokenAllocation({ handleNext }: TokenAllocationProps) {
               </div>
               <div className="text-right">
                 <p className="text-muted-foreground">Wallet</p>
-                <p className="font-mono text-xs text-inverse">{formatAddress(beneficiary.walletAddress)}</p>
+                <p className="font-mono text-xs text-inverse">{beneficiary.walletAddress ? formatAddress(beneficiary.walletAddress) : '-'}</p>
               </div>
             </div>
           ))}

@@ -11,7 +11,6 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: 'bg-primary text-inverse hover:opacity-90',
-        momo: 'bg-momo text-momo-foreground hover:bg-momo',
         destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
         outline: 'border border-input hover:bg-accent hover:text-accent-foreground',
         secondary: 'bg-primary-foreground text-muted-foreground hover:opacity-80',

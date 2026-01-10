@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
-import { CONNECT_WALLET_URL, FORGOT_PASSWORD_URL, SIGN_UP_URL, WALLET_URL } from '@/config/path';
+import { CLAIM_URL, CONNECT_WALLET_URL, FORGOT_PASSWORD_URL, SIGN_UP_URL, WALLET_URL } from '@/config/path';
 import { useMutation } from '@tanstack/react-query';
 import { getUserTeritageApi, userLogin } from '@/config/apis';
 import { setCookie } from 'cookies-next';
@@ -17,7 +17,7 @@ import ShowError from '../errors/display-error';
 import { useState } from 'react';
 import FormGroup from '../ui/form-group';
 import InputAdornment from '../ui/input-adornment';
-import { Eye, EyeOff } from 'lucide-react';
+import { ChevronRight, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { isAxiosError } from 'axios';
 
@@ -71,7 +71,22 @@ export function LoginForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <Link href={CLAIM_URL}>
+          <div className="bg-primary/5 hover:bg-primary/10 border border-primary/20 rounded-xl p-4 flex items-center justify-between transition-colors cursor-pointer group mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="bg-primary/10 p-2 rounded-full group-hover:bg-primary/20 transition-colors">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-inverse">Are you a beneficiary?</p>
+                <p className="text-[11px] text-muted-foreground">Claim inheritance funds securely.</p>
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-primary/40 group-hover:text-primary transition-colors" />
+          </div>
+        </Link>
+
         <div>
           <h2 className="text-2xl font-medium">Log In</h2>
           <p className="text-sm">Enter your email and password to log in to continue.</p>
@@ -133,7 +148,7 @@ export function LoginForm() {
         <Button type="submit" className="w-full" loadingText="Please wait..." isLoading={isPending}>
           Continue
         </Button>
-        <p className="text-sm text-muted text-center">
+        <p className="text-sm text-muted-foreground text-center">
           Don&apos;t have account ?{' '}
           <Link href={SIGN_UP_URL}>
             <span className="text-primary" role="button">

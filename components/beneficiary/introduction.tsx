@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { INextPage } from '@/type';
 
-export default function Introduction({ handleNext, className }: INextPage) {
+export default function Introduction({ handleNext, handleSkip, className }: INextPage) {
   return (
     <div className={cn('space-y-6 p-4', className)}>
       <div className='bg-muted w-[60px] h-[60px] rounded-full' />
@@ -35,9 +35,16 @@ export default function Introduction({ handleNext, className }: INextPage) {
         </div>
       </div>
 
-      <Button className='w-full' onClick={handleNext}>
-        Set Up Inheritance
-      </Button>
+      <div className="space-y-3">
+        <Button className='w-full' onClick={handleNext}>
+          Set Up Inheritance
+        </Button>
+        {handleSkip && (
+          <Button variant="ghost" className='w-full text-muted-foreground' onClick={handleSkip}>
+            Skip for now
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

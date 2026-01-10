@@ -13,9 +13,12 @@ export interface BeneficiaryEntry {
   firstName: string;
   lastName: string;
   email: string;
-  walletAddress: string;
+  walletAddress?: string;
   sharePercentage: number;
   notifyBeneficiary: boolean;
+  secretQuestion?: string;
+  secretAnswer?: string;
+  shareSecretQuestion?: boolean;
 }
 
 export interface TokenEntry {
