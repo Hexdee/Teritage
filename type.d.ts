@@ -12,6 +12,7 @@ export interface ICreateUsernameForm {
 
 export interface INextPage {
   handleNext: (arg?: BeneficiaryEntry) => void;
+  handleSkip?: () => void;
   className?: string;
   isLoading?: boolean;
   newBeneficiary?: boolean;

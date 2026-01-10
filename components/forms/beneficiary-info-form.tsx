@@ -17,19 +17,35 @@ import { Switch } from '../ui/switch';
 import { useInheritancePlanStore } from '@/store/useInheritancePlanStore';
 import { INextPage } from '@/type';
 
-const beneficiarySchema = z.object({
-  firstName: z.string().min(2, { message: 'First name is required' }),
-  lastName: z.string().min(2, { message: 'Last name is required' }),
-  email: z.string().email({ message: 'A valid email is required' }),
-  walletAddress: z
-    .string()
-    .min(1, { message: 'Wallet address is required' })
-    .refine((value) => isAddress(value), {
-      message: 'Enter a valid EVM address',
-    }),
-  sharePercentage: z.coerce.number().min(1, { message: 'Share must be at least 1%' }).max(100, { message: 'Share cannot exceed 100%' }),
-  notifyBeneficiary: z.boolean().optional(),
-});
+const beneficiarySchema = z
+  .object({
+    firstName: z.string().min(2, { message: 'First name is required' }),
+    lastName: z.string().min(2, { message: 'Last name is required' }),
+    email: z.string().email({ message: 'A valid email is required' }),
+    walletAddress: z
+      .string()
+      .optional()
+      .refine((value) => !value || isAddress(value), {
+        message: 'Enter a valid EVM address',
+      }),
+    sharePercentage: z.coerce.number().min(1, { message: 'Share must be at least 1%' }).max(100, { message: 'Share cannot exceed 100%' }),
+    notifyBeneficiary: z.boolean().optional(),
+    secretQuestion: z.string().optional(),
+    secretAnswer: z.string().optional(),
+    shareSecretQuestion: z.boolean().optional(),
+  })
+  .refine(
+    (data) => {
+      // Must have either a valid wallet address OR a secret question and answer
+      const hasWallet = data.walletAddress && data.walletAddress.length > 0;
+      const hasSecret = data.secretQuestion && data.secretQuestion.length > 0 && data.secretAnswer && data.secretAnswer.length > 0;
+      return hasWallet || hasSecret;
+    },
+    {
+      message: 'Kindly provide either a wallet address or a secret question and answer',
+      path: ['walletAddress'], // Show error on wallet address field by default
+    }
+  );
 
 const formSchema = z
   .object({
@@ -55,6 +71,9 @@ const DEFAULT_BENEFICIARY = {
   walletAddress: '',
   sharePercentage: 100,
   notifyBeneficiary: false,
+  secretQuestion: '',
+  secretAnswer: '',
+  shareSecretQuestion: false,
 };
 
 export default function BeneficiaryInfoForm({ handleNext, hasFormat, isLoading, newBeneficiary = true }: INextPage) {
@@ -95,9 +114,12 @@ export default function BeneficiaryInfoForm({ handleNext, hasFormat, isLoading, 
       firstName: beneficiary.firstName.trim(),
       lastName: beneficiary.lastName.trim(),
       email: beneficiary.email.trim(),
-      walletAddress: getAddress(beneficiary.walletAddress),
+      walletAddress: beneficiary.walletAddress ? getAddress(beneficiary.walletAddress) : undefined,
       sharePercentage: Number(beneficiary.sharePercentage),
       notifyBeneficiary: beneficiary.notifyBeneficiary ?? false,
+      secretQuestion: beneficiary.secretQuestion?.trim(),
+      secretAnswer: beneficiary.secretAnswer?.trim(),
+      shareSecretQuestion: beneficiary.shareSecretQuestion ?? false,
     }));
 
     setBeneficiaries(formatted);
@@ -161,37 +183,101 @@ export default function BeneficiaryInfoForm({ handleNext, hasFormat, isLoading, 
               )}
             />
 
-            <FormField
-              control={form.control}
-              name={`beneficiaries.${index}.walletAddress`}
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center justify-between">
-                    <FormLabel>Wallet Address</FormLabel>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <button type="button">
-                          <Info size={12} className="text-muted-foreground" />
-                        </button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-sm">
-                        <DialogHeader>
-                          <DialogTitle>EVM Wallet Address</DialogTitle>
-                          <Separator />
-                          <DialogDescription>
-                            EVM addresses start with 0x and identify wallets on Ethereum-compatible networks such as Hedera smart contracts, Base, or Polygon.
-                          </DialogDescription>
-                        </DialogHeader>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                  <FormControl>
-                    <Input placeholder="0x..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+            <div className="space-y-4 pt-2">
+              <div className="space-y-1">
+                <h4 className="text-xs font-semibold uppercase text-muted-foreground">Verification Method</h4>
+                <p className="text-[10px] text-muted-foreground">Provide at least one method to verify the beneficiary.</p>
+              </div>
+
+              <FormField
+                control={form.control}
+                name={`beneficiaries.${index}.walletAddress`}
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Wallet Address (Optional)</FormLabel>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <button type="button">
+                            <Info size={12} className="text-muted-foreground" />
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-sm">
+                          <DialogHeader>
+                            <DialogTitle>EVM Wallet Address</DialogTitle>
+                            <Separator />
+                            <DialogDescription>
+                              EVM addresses start with 0x and identify wallets on Ethereum-compatible networks such as Hedera smart contracts, Base, or Polygon.
+                            </DialogDescription>
+                          </DialogHeader>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                    <FormControl>
+                      <Input placeholder="0x..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="relative py-2">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">OR</span>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-1 gap-4">
+                <FormField
+                  control={form.control}
+                  name={`beneficiaries.${index}.secretQuestion`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Secret Question</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Mother's maiden name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name={`beneficiaries.${index}.secretAnswer`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Secret Answer</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter answer" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {form.watch(`beneficiaries.${index}.secretQuestion`) && (
+                <FormField
+                  control={form.control}
+                  name={`beneficiaries.${index}.shareSecretQuestion`}
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel>Share secret question?</FormLabel>
+                        <p className="text-[10px] text-muted-foreground">Beneficiary will receive an email with this question.</p>
+                      </div>
+                      <FormControl>
+                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
               )}
-            />
+            </div>
 
             <FormField
               control={form.control}
@@ -264,6 +350,9 @@ export default function BeneficiaryInfoForm({ handleNext, hasFormat, isLoading, 
                   walletAddress: '',
                   sharePercentage: 0,
                   notifyBeneficiary: false,
+                  secretQuestion: '',
+                  secretAnswer: '',
+                  shareSecretQuestion: false,
                 })
               }
             >

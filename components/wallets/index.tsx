@@ -55,7 +55,7 @@ export default function AddWalletContent() {
   const handleMutatePlan = (values: BeneficiaryEntry[]) => {
     const payload: UpdateTeritagePlanRequest = {
       inheritors: values.map((beneficiary) => ({
-        address: getAddress(beneficiary.walletAddress),
+        address: getAddress(beneficiary.walletAddress || ''),
         sharePercentage: Math.round(beneficiary.sharePercentage),
         name: formatName(beneficiary),
         email: beneficiary.email.trim(),
