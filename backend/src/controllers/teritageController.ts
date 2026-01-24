@@ -307,15 +307,21 @@ function handleControllerError(context: string, err: unknown, res: Response) {
 
 function normalizeInheritors(
   inheritors: z.infer<typeof inheritorSchema>[]
-): z.infer<typeof inheritorSchema>[] {
+): ITeritagePlan["inheritors"] {
   return inheritors.map((inheritor) => {
     const hasAddress = Boolean(inheritor.address && inheritor.address.trim().length > 0);
     const address = hasAddress ? inheritor.address!.trim() : ZERO_ADDRESS;
 
     return {
-      ...inheritor,
       address: address.toLowerCase(),
-      secretAnswerHash: inheritor.secretAnswerHash?.toLowerCase()
+      sharePercentage: inheritor.sharePercentage,
+      name: inheritor.name,
+      email: inheritor.email,
+      phone: inheritor.phone,
+      notes: inheritor.notes,
+      secretQuestion: inheritor.secretQuestion,
+      secretAnswerHash: inheritor.secretAnswerHash?.toLowerCase(),
+      shareSecretQuestion: inheritor.shareSecretQuestion
     };
   });
 }

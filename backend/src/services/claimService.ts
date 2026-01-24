@@ -162,7 +162,7 @@ export async function submitClaim(params: {
     claimTxHash = claimTx.hash;
     await recordClaim(normalizedOwner, {
       initiatedBy: normalizedWallet,
-      txHash: claimTxHash
+      txHash: claimTxHash ?? undefined
     });
   }
 
