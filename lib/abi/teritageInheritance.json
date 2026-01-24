@@ -64,6 +64,11 @@
   },
   {
     "inputs": [],
+    "name": "PendingInheritors",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "NotInheritor",
     "type": "error"
   },
@@ -90,6 +95,16 @@
   {
     "inputs": [],
     "name": "PlanNotFound",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "UnauthorizedOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "UnauthorizedRelayer",
     "type": "error"
   },
   {
@@ -224,6 +239,31 @@
         "type": "address"
       },
       {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "index",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "beneficiary",
+        "type": "address"
+      }
+    ],
+    "name": "InheritorResolved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
         "indexed": false,
         "internalType": "uint64",
         "name": "timestamp",
@@ -244,6 +284,19 @@
       }
     ],
     "name": "PlanCleared",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "relayer",
+        "type": "address"
+      }
+    ],
+    "name": "RelayerUpdated",
     "type": "event"
   },
   {
@@ -352,6 +405,11 @@
         "internalType": "uint96[]",
         "name": "shares",
         "type": "uint96[]"
+      },
+      {
+        "internalType": "bytes32[]",
+        "name": "secretHashes",
+        "type": "bytes32[]"
       },
       {
         "internalType": "address[]",
@@ -481,6 +539,96 @@
     "name": "updateInheritors",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "inheritors",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint96[]",
+        "name": "shares",
+        "type": "uint96[]"
+      },
+      {
+        "internalType": "bytes32[]",
+        "name": "secretHashes",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "updateInheritorsWithSecrets",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "index",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "beneficiary",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "answer",
+        "type": "string"
+      }
+    ],
+    "name": "resolveInheritorWithSecret",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newRelayer",
+        "type": "address"
+      }
+    ],
+    "name": "setRelayer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "relayer",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

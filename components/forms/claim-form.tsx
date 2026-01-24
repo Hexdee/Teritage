@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { isAddress, getAddress } from 'viem';
-import { CheckCircle2, ChevronLeft, ChevronRight, Search, ShieldCheck, Wallet } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, Search, ShieldCheck, Wallet } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -13,9 +13,11 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { claimLookup, claimSubmit, claimVerify } from '@/config/apis';
 
 const searchSchema = z.object({
   ownerEmail: z.string().email({ message: 'Enter a valid owner email' }),
+  beneficiaryEmail: z.string().email({ message: 'Enter a valid beneficiary email' }),
 });
 
 const verifySchema = z.object({
@@ -34,11 +36,14 @@ export default function ClaimForm() {
   const [step, setStep] = useState<Step>('SEARCH');
   const [isLoading, setIsLoading] = useState(false);
   const [secretQuestion, setSecretQuestion] = useState<string | null>(null);
+  const [claimTarget, setClaimTarget] = useState<{ ownerAddress: string; inheritorIndex: number } | null>(null);
+  const [verifiedAnswer, setVerifiedAnswer] = useState<string | null>(null);
+  const [claimable, setClaimable] = useState<boolean | null>(null);
 
   // Search Step Form
   const searchForm = useForm<z.infer<typeof searchSchema>>({
     resolver: zodResolver(searchSchema),
-    defaultValues: { ownerEmail: '' },
+    defaultValues: { ownerEmail: '', beneficiaryEmail: '' },
   });
 
   // Verify Step Form
@@ -56,15 +61,16 @@ export default function ClaimForm() {
   const onSearchSubmit = async (values: z.infer<typeof searchSchema>) => {
     setIsLoading(true);
     try {
-      // Mock API call to check if plan exists and get secret question
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      // For demo purposes, we'll assume the plan is found and has a question
-      setSecretQuestion("What is your mother's maiden name?"); // Mock question
+      setClaimTarget(null);
+      setVerifiedAnswer(null);
+      setClaimable(null);
+      const response = await claimLookup(values);
+      setSecretQuestion(response.secretQuestion);
+      setClaimTarget({ ownerAddress: response.ownerAddress, inheritorIndex: response.inheritorIndex });
       setStep('VERIFY');
       toast.success("Plan found! Please verify your identity.");
     } catch (error) {
-      toast.error("No active plan found for this email.");
+      toast.error("No active plan found for these details.");
     } finally {
       setIsLoading(false);
     }
@@ -73,8 +79,17 @@ export default function ClaimForm() {
   const onVerifySubmit = async (values: z.infer<typeof verifySchema>) => {
     setIsLoading(true);
     try {
-      // Mock API call to verify answer
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (!claimTarget) {
+        toast.error('Missing claim details. Please restart the lookup.');
+        setStep('SEARCH');
+        return;
+      }
+      await claimVerify({
+        ownerAddress: claimTarget.ownerAddress,
+        inheritorIndex: claimTarget.inheritorIndex,
+        secretAnswer: values.secretAnswer,
+      });
+      setVerifiedAnswer(values.secretAnswer);
       setStep('WALLET');
       toast.success("Identity verified.");
     } catch (error) {
@@ -87,10 +102,20 @@ export default function ClaimForm() {
   const onWalletSubmit = async (values: z.infer<typeof walletSchema>) => {
     setIsLoading(true);
     try {
-      // Mock API call to submit claim
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      if (!claimTarget || !verifiedAnswer) {
+        toast.error('Missing verification details. Please restart the claim.');
+        setStep('SEARCH');
+        return;
+      }
+      const response = await claimSubmit({
+        ownerAddress: claimTarget.ownerAddress,
+        inheritorIndex: claimTarget.inheritorIndex,
+        secretAnswer: verifiedAnswer,
+        beneficiaryWallet: getAddress(values.beneficiaryWallet),
+      });
+      setClaimable(response.claimable);
       setStep('SUCCESS');
-      toast.success("Claim submitted successfully!");
+      toast.success(response.claimable ? "Claim submitted successfully!" : "Wallet saved. Claim will trigger once eligible.");
     } catch (error) {
       toast.error("Failed to submit claim. Please try again.");
     } finally {
@@ -140,7 +165,7 @@ export default function ClaimForm() {
               <form onSubmit={searchForm.handleSubmit(onSearchSubmit)} className="space-y-6">
                 <div className="space-y-1">
                   <h2 className="text-xl font-medium text-inverse">Find Inheritance Plan</h2>
-                  <p className="text-sm text-muted-foreground">Enter the email address of the plan owner to locate the inheritance plot.</p>
+                  <p className="text-sm text-muted-foreground">Enter the plan owner’s email and your beneficiary email to locate the claim.</p>
                 </div>
                 <FormField
                   control={searchForm.control}
@@ -150,6 +175,19 @@ export default function ClaimForm() {
                       <FormLabel>Owner Email Address</FormLabel>
                       <FormControl>
                         <Input placeholder="name@example.com" {...field} className="h-12" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={searchForm.control}
+                  name="beneficiaryEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Your Email Address</FormLabel>
+                      <FormControl>
+                        <Input placeholder="you@example.com" {...field} className="h-12" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -236,7 +274,9 @@ export default function ClaimForm() {
               <div className="space-y-2">
                 <h2 className="text-2xl font-medium text-inverse">Claim Request Received</h2>
                 <p className="text-muted-foreground px-4">
-                  Your claim has been submitted. The assets will be transferred to your wallet once the verification process is complete.
+                  {claimable
+                    ? 'Your claim has been submitted. The assets will be transferred to your wallet once the verification process is complete.'
+                    : 'Your wallet has been recorded. The claim will be processed once the plan becomes eligible.'}
                 </p>
               </div>
               <div className="pt-4">

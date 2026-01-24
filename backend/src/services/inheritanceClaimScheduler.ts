@@ -6,6 +6,7 @@ import { recordClaim } from './teritageService.js';
 import { logger } from '../utils/logger.js';
 
 const CLAIM_FUNCTION_ABI = ['function claimInheritance(address owner)'];
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 let schedulerHandle: NodeJS.Timeout | null = null;
 let contractInstance: Contract | null = null;
@@ -72,6 +73,9 @@ export const runClaimSweep = async (): Promise<void> => {
   }
 
   for (const plan of pendingPlans) {
+    if (plan.inheritors?.some((inheritor) => inheritor.address?.toLowerCase() === ZERO_ADDRESS)) {
+      continue;
+    }
     const lastCheckInAt =
       plan.lastCheckInAt instanceof Date
         ? plan.lastCheckInAt

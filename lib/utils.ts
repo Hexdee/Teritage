@@ -17,6 +17,8 @@ export const formatAddress = (address: string) => {
   return `${address.slice(0, start)}...${address.slice(-end)}`;
 };
 
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
 export function copyToClipboard(text: string) {
   if (navigator.clipboard) {
     navigator.clipboard
@@ -43,17 +45,28 @@ export function copyToClipboard(text: string) {
   }
 }
 
-export function transformBeneficiaries(oldArray: { address: string; name: string; email: string; sharePercentage: number }[]) {
+export function transformBeneficiaries(oldArray: {
+  address: string;
+  name: string;
+  email: string;
+  sharePercentage: number;
+  secretQuestion?: string;
+  shareSecretQuestion?: boolean;
+}[]) {
   return oldArray.map((item) => {
     const [firstName, lastName] = item.name.split(' ');
+    const isPending = item.address?.toLowerCase() === ZERO_ADDRESS;
 
     return {
       firstName: firstName || '',
       lastName: lastName || '',
       email: item.email || '',
-      walletAddress: item.address || '',
+      walletAddress: isPending ? '' : item.address || '',
       sharePercentage: item.sharePercentage || 0,
       notifyBeneficiary: false,
+      secretQuestion: item.secretQuestion || '',
+      secretAnswer: '',
+      shareSecretQuestion: item.shareSecretQuestion ?? false,
     };
   });
 }

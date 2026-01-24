@@ -46,6 +46,9 @@ export interface TeritageInheritorInput {
   email?: string;
   phone?: string;
   notes?: string;
+  secretQuestion?: string;
+  secretAnswerHash?: string;
+  shareSecretQuestion?: boolean;
 }
 
 export interface TeritageUserProfileInput {
@@ -201,6 +204,9 @@ interface IWalletData {
         email: string;
         phone: string;
         notes: string;
+        secretQuestion?: string;
+        secretAnswerHash?: string;
+        shareSecretQuestion?: boolean;
       }
     ];
     tokens: [

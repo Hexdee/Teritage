@@ -5,6 +5,8 @@ const { loadFixture, time } = require("@nomicfoundation/hardhat-toolbox/network-
 const ONE_DAY = 24 * 60 * 60;
 const HEDERA_PRECOMPILE = "0x0000000000000000000000000000000000000167";
 const ZERO_ADDRESS = ethers.ZeroAddress;
+const ZERO_HASH = ethers.ZeroHash;
+const noSecrets = (count) => Array(count).fill(ZERO_HASH);
 const WEI_PER_TINYBAR = 10_000_000_000n;
 
 async function setNativeTinybarBalance(address, tinybars) {
@@ -69,7 +71,7 @@ describe("TeritageInheritance", function () {
 
     await teritage
       .connect(owner)
-      .createPlan([inheritorA.address, inheritorB.address], [6000, 4000], tokens, tokenTypes, ONE_DAY);
+      .createPlan([inheritorA.address, inheritorB.address], [6000, 4000], noSecrets(2), tokens, tokenTypes, ONE_DAY);
 
     const plan = await teritage.getPlan(owner.address);
     expect(plan[0]).to.deep.equal([inheritorA.address, inheritorB.address]);
@@ -88,6 +90,7 @@ describe("TeritageInheritance", function () {
       .createPlan(
         [inheritorA.address, inheritorB.address],
         [6000, 4000],
+        noSecrets(2),
         [await tokenA.getAddress(), htsToken],
         [0, 1],
         ONE_DAY
@@ -118,6 +121,7 @@ describe("TeritageInheritance", function () {
       .createPlan(
         [inheritorA.address, inheritorB.address],
         [5000, 5000],
+        noSecrets(2),
         [await tokenA.getAddress()],
         [0],
         ONE_DAY
@@ -146,6 +150,7 @@ describe("TeritageInheritance", function () {
       .createPlan(
         [inheritorA.address, inheritorB.address],
         [6000, 4000],
+        noSecrets(2),
         [await tokenA.getAddress(), htsToken, ZERO_ADDRESS],
         [0, 1, 2],
         ONE_DAY
@@ -206,6 +211,7 @@ describe("TeritageInheritance", function () {
       .createPlan(
         [inheritorA.address, inheritorB.address],
         [6000, 4000],
+        noSecrets(2),
         [await tokenA.getAddress(), htsToken, ZERO_ADDRESS],
         [0, 1, 2],
         ONE_DAY
@@ -252,6 +258,7 @@ describe("TeritageInheritance", function () {
       .createPlan(
         [inheritorA.address, inheritorB.address],
         [3000, 2000],
+        noSecrets(2),
         [await tokenA.getAddress()],
         [0],
         ONE_DAY
@@ -284,6 +291,7 @@ describe("TeritageInheritance", function () {
         .createPlan(
           [inheritorA.address, inheritorB.address],
           [7000, 4000],
+          noSecrets(2),
           [await tokenA.getAddress()],
           [0],
           ONE_DAY
@@ -299,6 +307,7 @@ describe("TeritageInheritance", function () {
       .createPlan(
         [inheritorA.address, inheritorB.address],
         [5000, 5000],
+        noSecrets(2),
         [await tokenA.getAddress(), htsToken],
         [0, 1],
         ONE_DAY
@@ -322,6 +331,7 @@ describe("TeritageInheritance", function () {
       .createPlan(
         [inheritorA.address, inheritorB.address],
         [5000, 5000],
+        noSecrets(2),
         [htsToken],
         [1],
         ONE_DAY
@@ -345,6 +355,7 @@ describe("TeritageInheritance", function () {
       .createPlan(
         [inheritorA.address, inheritorB.address],
         [5000, 5000],
+        noSecrets(2),
         [htsToken],
         [1],
         ONE_DAY
@@ -367,6 +378,7 @@ describe("TeritageInheritance", function () {
       .createPlan(
         [inheritorA.address, inheritorB.address],
         [5000, 5000],
+        noSecrets(2),
         [ZERO_ADDRESS],
         [2],
         ONE_DAY

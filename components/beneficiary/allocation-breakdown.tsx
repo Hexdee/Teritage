@@ -6,6 +6,7 @@ import { BeneficiaryRow } from '@/app/(dashboard)/beneficiary/columns';
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(value);
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 interface AllocationBreakdownProps extends INextPage {
   beneficiary: BeneficiaryRow;
@@ -16,6 +17,8 @@ interface AllocationBreakdownProps extends INextPage {
 }
 
 export default function AllocationBreakdown({ handleNext, beneficiary, allocatedValue, unallocatedValue, assignedPercentage, unallocatedPercentage }: AllocationBreakdownProps) {
+  const isPending = beneficiary.full_wallet_address?.toLowerCase() === ZERO_ADDRESS;
+
   return (
     <div className="space-y-12">
       <div className="relative">
@@ -48,10 +51,16 @@ export default function AllocationBreakdown({ handleNext, beneficiary, allocated
 
       <div className="bg-card border rounded-md text-muted-foreground text-sm p-2 flex items-start space-x-2">
         <InfoCircleIcon />
-        <p>
-          In the event of inactivity or death, allocated tokens in your wallet will be transferred to {beneficiary.name}&apos;s wallet address{' '}
-          <span className="font-mono text-inverse">{beneficiary.wallet_address}</span>.
-        </p>
+        {isPending ? (
+          <p>
+            In the event of inactivity or death, allocated tokens will be transferred once {beneficiary.name}&apos;s wallet address is provided during the claim process.
+          </p>
+        ) : (
+          <p>
+            In the event of inactivity or death, allocated tokens in your wallet will be transferred to {beneficiary.name}&apos;s wallet address{' '}
+            <span className="font-mono text-inverse">{beneficiary.wallet_address}</span>.
+          </p>
+        )}
       </div>
 
       <Button onClick={handleNext}>Manage Allocation</Button>

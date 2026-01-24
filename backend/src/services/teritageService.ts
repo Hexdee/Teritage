@@ -284,17 +284,33 @@ function validateInheritors(inheritors: ITeritagePlan["inheritors"]): void {
 
   for (const inheritor of inheritors) {
     const address = inheritor.address.trim().toLowerCase();
+    const isPending = address === ZERO_ADDRESS;
     if (!address) {
       throw new Error("Inheritor address is required");
     }
-    if (seen.has(address)) {
-      throw new Error("Duplicate inheritor address detected");
+    if (isPending) {
+      if (!inheritor.secretAnswerHash) {
+        throw new Error("Secret answer hash is required for pending inheritors");
+      }
+      if (!inheritor.secretQuestion) {
+        throw new Error("Secret question is required for pending inheritors");
+      }
+    } else {
+      if (inheritor.secretAnswerHash) {
+        throw new Error("Secret answer hash is only allowed for pending inheritors");
+      }
+      if (seen.has(address)) {
+        throw new Error("Duplicate inheritor address detected");
+      }
+      seen.add(address);
+    }
+    if (inheritor.shareSecretQuestion && !inheritor.secretQuestion) {
+      throw new Error("Cannot share secret question without a question");
     }
     if (inheritor.sharePercentage <= 0) {
       throw new Error("Inheritor share must be greater than 0");
     }
     total += inheritor.sharePercentage;
-    seen.add(address);
   }
 
   if (total > SHARE_TOTAL) {
@@ -368,7 +384,9 @@ async function notifyBeneficiariesByEmail(plan: ITeritagePlan, owner: IUser | nu
     .map((inheritor) => ({
       email: inheritor.email?.trim(),
       name: inheritor.name?.trim(),
-      sharePercentage: inheritor.sharePercentage
+      sharePercentage: inheritor.sharePercentage,
+      secretQuestion: inheritor.secretQuestion?.trim(),
+      shareSecretQuestion: inheritor.shareSecretQuestion
     }))
     .filter((recipient) => recipient.email);
 
@@ -384,10 +402,16 @@ async function notifyBeneficiariesByEmail(plan: ITeritagePlan, owner: IUser | nu
     const greeting = recipient.name ? `Hi ${recipient.name},` : "Hello,";
     const shareMarkup = renderShareMarkup(recipient.sharePercentage);
 
+    const secretQuestionLine =
+      recipient.shareSecretQuestion && recipient.secretQuestion
+        ? `<p>Secret question: <strong>${recipient.secretQuestion}</strong></p>`
+        : "";
+
     const html = `
       <p>${greeting}</p>
       <p>${ownerName} just created a Teritage inheritance plan and listed you as a beneficiary.</p>
       ${shareMarkup}
+      ${secretQuestionLine}
       <p>Here’s what that means:</p>
       <ul>
         <li>${ownerName} confirms everything is okay ${intervalDescription} to keep the plan active.</li>

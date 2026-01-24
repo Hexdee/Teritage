@@ -20,7 +20,8 @@ import { updateTeritagePlanApi, userSetUsername } from '@/config/apis';
 import { toast } from 'sonner';
 import { TERITAGES_KEY, USER_PROFILE_KEY } from '@/config/key';
 import { BeneficiaryEntry } from '@/store/useInheritancePlanStore';
-import { getAddress } from 'viem';
+import { getAddress, zeroAddress } from 'viem';
+import { hashSecretAnswer } from '@/lib/secret';
 
 export default function AddWalletContent() {
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -55,10 +56,13 @@ export default function AddWalletContent() {
   const handleMutatePlan = (values: BeneficiaryEntry[]) => {
     const payload: UpdateTeritagePlanRequest = {
       inheritors: values.map((beneficiary) => ({
-        address: getAddress(beneficiary.walletAddress || ''),
+        address: beneficiary.walletAddress ? getAddress(beneficiary.walletAddress) : zeroAddress,
         sharePercentage: Math.round(beneficiary.sharePercentage),
         name: formatName(beneficiary),
         email: beneficiary.email.trim(),
+        secretQuestion: beneficiary.secretQuestion?.trim(),
+        secretAnswerHash: beneficiary.secretAnswer ? hashSecretAnswer(beneficiary.secretAnswer) : undefined,
+        shareSecretQuestion: beneficiary.shareSecretQuestion ?? false,
       })),
       tokens: teritageData?.plan.tokens as any,
       checkInIntervalSeconds: teritageData?.plan.checkInIntervalSeconds,

@@ -18,6 +18,7 @@ interface ContractTokenInput extends TeritageTokenConfig {
 interface CreatePlanArgs {
   inheritors: Address[];
   shares: number[];
+  secretHashes: `0x${string}`[];
   tokens: ContractTokenInput[];
   checkInIntervalSeconds: number;
   backendPayload?: CreateTeritagePlanRequest;
@@ -26,6 +27,7 @@ interface CreatePlanArgs {
 interface UpdateInheritorsArgs {
   inheritors: Address[];
   shares: number[];
+  secretHashes?: `0x${string}`[];
   backendPayload?: UpdateTeritagePlanRequest;
 }
 
@@ -84,10 +86,17 @@ export function useTeritageContract() {
   );
 
   const createPlan = useCallback(
-    async ({ inheritors, shares, tokens, checkInIntervalSeconds, backendPayload }: CreatePlanArgs) => {
+    async ({ inheritors, shares, secretHashes, tokens, checkInIntervalSeconds, backendPayload }: CreatePlanArgs) => {
       await execute({
         functionName: 'createPlan',
-        args: [inheritors, toShareValues(shares), tokens.map((token) => token.address), toTokenTypes(tokens), toInterval(checkInIntervalSeconds)],
+        args: [
+          inheritors,
+          toShareValues(shares),
+          secretHashes,
+          tokens.map((token) => token.address),
+          toTokenTypes(tokens),
+          toInterval(checkInIntervalSeconds),
+        ],
       });
 
       if (backendPayload) {
@@ -98,10 +107,12 @@ export function useTeritageContract() {
   );
 
   const updateInheritors = useCallback(
-    async ({ inheritors, shares, backendPayload }: UpdateInheritorsArgs) => {
+    async ({ inheritors, shares, secretHashes, backendPayload }: UpdateInheritorsArgs) => {
+      const functionName = secretHashes ? 'updateInheritorsWithSecrets' : 'updateInheritors';
+      const args = secretHashes ? [inheritors, toShareValues(shares), secretHashes] : [inheritors, toShareValues(shares)];
       await execute({
-        functionName: 'updateInheritors',
-        args: [inheritors, toShareValues(shares)],
+        functionName,
+        args,
       });
 
       if (backendPayload) {

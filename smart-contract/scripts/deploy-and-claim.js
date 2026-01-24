@@ -24,13 +24,14 @@ async function main() {
   // Step 1: create plan
   const inheritors = [BENEFICIARY];
   const shares = [8000]; // 80%
+  const secretHashes = [ethers.ZeroHash];
   const tokens = [ZERO_ADDRESS]; // HBAR
   const tokenTypes = [2]; // HBAR enum value
 
   console.log('Creating plan...');
   const createTx = await contract
     .connect(deployer)
-    .createPlan(inheritors, shares, tokens, tokenTypes, ONE_MINUTE);
+    .createPlan(inheritors, shares, secretHashes, tokens, tokenTypes, ONE_MINUTE);
   await createTx.wait();
   console.log('Plan created');
 

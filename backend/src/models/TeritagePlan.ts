@@ -9,6 +9,9 @@ interface IInheritor {
   email?: string;
   phone?: string;
   notes?: string;
+  secretQuestion?: string;
+  secretAnswerHash?: string;
+  shareSecretQuestion?: boolean;
 }
 
 interface ITrackedToken {
@@ -56,7 +59,10 @@ const inheritorSchema = new Schema<IInheritor>(
     name: { type: String },
     email: { type: String },
     phone: { type: String },
-    notes: { type: String }
+    notes: { type: String },
+    secretQuestion: { type: String },
+    secretAnswerHash: { type: String },
+    shareSecretQuestion: { type: Boolean, default: false }
   },
   { _id: false }
 );

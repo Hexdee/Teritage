@@ -16,13 +16,46 @@ import {
 import { ApiError } from "../utils/errors.js";
 import { logger } from "../utils/logger.js";
 
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+const secretHashSchema = z.string().trim().regex(/^0x[0-9a-fA-F]{64}$/);
+
 const inheritorSchema = z.object({
-  address: z.string().trim().min(1),
+  address: z.string().trim().optional(),
   sharePercentage: z.number().int().min(1).max(100),
   name: z.string().trim().optional(),
   email: z.string().trim().email().optional(),
   phone: z.string().trim().optional(),
-  notes: z.string().trim().optional()
+  notes: z.string().trim().optional(),
+  secretQuestion: z.string().trim().optional(),
+  secretAnswerHash: secretHashSchema.optional(),
+  shareSecretQuestion: z.boolean().optional()
+}).superRefine((inheritor, ctx) => {
+  const hasAddress = Boolean(inheritor.address && inheritor.address.length > 0);
+  const hasSecret = Boolean(inheritor.secretAnswerHash);
+
+  if (!hasAddress && !hasSecret) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Provide a wallet address or a secret answer hash",
+      path: ["address"]
+    });
+  }
+
+  if (hasAddress && hasSecret) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Use either a wallet address or a secret answer hash, not both",
+      path: ["secretAnswerHash"]
+    });
+  }
+
+  if (hasSecret && !inheritor.secretQuestion) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Secret question is required when using a secret answer",
+      path: ["secretQuestion"]
+    });
+  }
 });
 
 const tokenSchema = z
@@ -65,8 +98,10 @@ export async function handleCreateTeritage(req: AuthenticatedRequest, res: Respo
     }
 
     const payload = createSchema.parse(req.body);
+    const normalizedInheritors = normalizeInheritors(payload.inheritors);
     const plan = await createTeritagePlan(req.userId, {
       ...payload,
+      inheritors: normalizedInheritors,
       tokens: payload.tokens.map((token) => ({
         type: token.type,
         address: token.address ?? ""
@@ -86,8 +121,10 @@ export async function handleUpdateTeritage(req: AuthenticatedRequest, res: Respo
     }
 
     const payload = updateSchema.parse(req.body);
+    const normalizedInheritors = payload.inheritors ? normalizeInheritors(payload.inheritors) : undefined;
     const plan = await updateTeritagePlan(req.userId, {
       ...payload,
+      inheritors: normalizedInheritors,
       tokens: payload.tokens
         ? payload.tokens.map((token) => ({
             type: token.type,
@@ -266,4 +303,19 @@ function handleControllerError(context: string, err: unknown, res: Response) {
     logger.error(`[${context}] Unexpected error`, err);
     res.status(500).json({ message: "Unexpected error" });
   }
+}
+
+function normalizeInheritors(
+  inheritors: z.infer<typeof inheritorSchema>[]
+): z.infer<typeof inheritorSchema>[] {
+  return inheritors.map((inheritor) => {
+    const hasAddress = Boolean(inheritor.address && inheritor.address.trim().length > 0);
+    const address = hasAddress ? inheritor.address!.trim() : ZERO_ADDRESS;
+
+    return {
+      ...inheritor,
+      address: address.toLowerCase(),
+      secretAnswerHash: inheritor.secretAnswerHash?.toLowerCase()
+    };
+  });
 }

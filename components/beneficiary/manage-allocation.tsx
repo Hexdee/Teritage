@@ -15,6 +15,7 @@ import { useApplications } from '@/context/dashboard-provider';
 import { transformBeneficiaries } from '@/lib/utils';
 
 const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(value);
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 interface ManageAllocationProps {
   beneficiary:
@@ -37,6 +38,7 @@ export default function ManageAllocation({ beneficiary, totalValue, setCurrentSt
   const [newAllocation, setNewAllocation] = useState<number[]>([beneficiary.sharePercentage]);
   const [errorField, setErrorField] = useState<string | null>(null);
   const { setBeneficiaries } = useInheritancePlanStore();
+  const isPending = beneficiary.full_wallet_address?.toLowerCase() === ZERO_ADDRESS;
 
   const { mutate, isPending } = useMutation({
     mutationFn: updateTeritagePlanApi,
@@ -124,7 +126,7 @@ export default function ManageAllocation({ beneficiary, totalValue, setCurrentSt
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2">
             <span className="mr-2 md:mr-0">Wallet:</span>
-            <span className="text-inverse font-mono flex justify-start md:justify-end">{beneficiary.full_wallet_address}</span>
+            <span className="text-inverse font-mono flex justify-start md:justify-end">{isPending ? 'Pending' : beneficiary.full_wallet_address}</span>
           </div>
         </div>
 

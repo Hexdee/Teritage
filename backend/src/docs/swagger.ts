@@ -23,6 +23,55 @@ export const swaggerSpec = swaggerJSDoc({
             message: { type: "string" }
           }
         },
+        ClaimLookupRequest: {
+          type: "object",
+          required: ["ownerEmail"],
+          properties: {
+            ownerEmail: { type: "string", format: "email" },
+            beneficiaryEmail: { type: "string", format: "email", nullable: true }
+          }
+        },
+        ClaimLookupResponse: {
+          type: "object",
+          properties: {
+            ownerAddress: { type: "string" },
+            inheritorIndex: { type: "integer" },
+            secretQuestion: { type: "string" }
+          }
+        },
+        ClaimVerifyRequest: {
+          type: "object",
+          required: ["ownerAddress", "inheritorIndex", "secretAnswer"],
+          properties: {
+            ownerAddress: { type: "string" },
+            inheritorIndex: { type: "integer", minimum: 0 },
+            secretAnswer: { type: "string" }
+          }
+        },
+        ClaimVerifyResponse: {
+          type: "object",
+          properties: {
+            valid: { type: "boolean" }
+          }
+        },
+        ClaimSubmitRequest: {
+          type: "object",
+          required: ["ownerAddress", "inheritorIndex", "secretAnswer", "beneficiaryWallet"],
+          properties: {
+            ownerAddress: { type: "string" },
+            inheritorIndex: { type: "integer", minimum: 0 },
+            secretAnswer: { type: "string" },
+            beneficiaryWallet: { type: "string" }
+          }
+        },
+        ClaimSubmitResponse: {
+          type: "object",
+          properties: {
+            resolvedTxHash: { type: "string" },
+            claimable: { type: "boolean" },
+            claimTxHash: { type: "string", nullable: true }
+          }
+        },
         VerificationTokenResponse: {
           type: "object",
           properties: {

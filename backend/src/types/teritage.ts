@@ -18,6 +18,9 @@ export interface InheritorProfile {
   email?: string;
   phone?: string;
   notes?: string;
+  secretQuestion?: string;
+  secretAnswerHash?: string;
+  shareSecretQuestion?: boolean;
 }
 
 export interface TeritageActivity {

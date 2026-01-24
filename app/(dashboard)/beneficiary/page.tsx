@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { columns, ActionCell, NameCell } from './columns';
 
 const formatAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 export default function Beneficiary() {
   const { teritageData, isLoadingTeritage, isTeritageError, teritageError } = useApplications();
@@ -38,15 +39,18 @@ export default function Beneficiary() {
     );
   }
 
-  const data = inheritors.map((beneficiary) => ({
-    name: beneficiary.name || beneficiary.address,
-    wallet_address: formatAddress(beneficiary.address),
-    full_wallet_address: beneficiary.address,
-    sharePercentage: beneficiary.sharePercentage,
-    notifyBeneficiary: false,
-    email: beneficiary.email ?? '',
-    phone: beneficiary.phone ?? '',
-  }));
+  const data = inheritors.map((beneficiary) => {
+    const isPending = beneficiary.address?.toLowerCase() === ZERO_ADDRESS;
+    return {
+      name: beneficiary.name || beneficiary.address,
+      wallet_address: isPending ? 'Pending' : formatAddress(beneficiary.address),
+      full_wallet_address: beneficiary.address,
+      sharePercentage: beneficiary.sharePercentage,
+      notifyBeneficiary: false,
+      email: beneficiary.email ?? '',
+      phone: beneficiary.phone ?? '',
+    };
+  });
 
   return (
     <div className="text-inverse">

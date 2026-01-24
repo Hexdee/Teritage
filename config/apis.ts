@@ -94,3 +94,12 @@ export const usercheckIn = (payload: { triggeredBy: string; note: string; timest
 export const getCheckIns = (): Promise<ICheckIn> => client.get('teritages/checkins').then((response) => response.data);
 
 export const getNotifications = (): Promise<ApiResponse> => client.get('/notifications').then((response) => response.data);
+
+export const claimLookup = (payload: { ownerEmail: string; beneficiaryEmail: string }): Promise<{ ownerAddress: string; inheritorIndex: number; secretQuestion: string }> =>
+  client.post('/claims/lookup', payload).then((response) => response.data);
+
+export const claimVerify = (payload: { ownerAddress: string; inheritorIndex: number; secretAnswer: string }): Promise<{ valid: boolean }> =>
+  client.post('/claims/verify', payload).then((response) => response.data);
+
+export const claimSubmit = (payload: { ownerAddress: string; inheritorIndex: number; secretAnswer: string; beneficiaryWallet: string }): Promise<{ resolvedTxHash: string; claimable: boolean; claimTxHash?: string | null }> =>
+  client.post('/claims/submit', payload).then((response) => response.data);

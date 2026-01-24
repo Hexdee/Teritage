@@ -26,7 +26,7 @@ export const env = {
     'https://testnet.mirrornode.hedera.com/api/v1',
   socketPingInterval: Number(process.env.SOCKET_PING_INTERVAL ?? 25000),
   socketPingTimeout: Number(process.env.SOCKET_PING_TIMEOUT ?? 60000),
-  contractAddress: '0xb84cb6c12592Ae8a12F2471cFc3C7Aa7FFB26773',
+  contractAddress: process.env.CONTRACT_ADDRESS ?? '',
   contractRpcUrl: process.env.CONTRACT_RPC_URL ?? '',
   contractRelayerKey: process.env.CONTRACT_RELAYER_PRIVATE_KEY ?? '',
   claimSweepIntervalMs: Number(process.env.CLAIM_SWEEP_INTERVAL_MS ?? 60000),

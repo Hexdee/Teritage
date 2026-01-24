@@ -18,8 +18,9 @@ import { TERITAGES_KEY } from '@/config/key';
 import { toast } from 'sonner';
 import { UpdateTeritagePlanRequest } from '@/type';
 import { BeneficiaryEntry } from '@/store/useInheritancePlanStore';
-import { getAddress } from 'viem';
+import { getAddress, zeroAddress } from 'viem';
 import { Button } from '@/components/ui/button';
+import { hashSecretAnswer } from '@/lib/secret';
 
 export type BeneficiaryRow = {
   name: string;
@@ -99,10 +100,13 @@ export const ActionCell = ({ data }: ActionCellProps) => {
 
     const payload: UpdateTeritagePlanRequest = {
       inheritors: inheritors?.map((beneficiary) => ({
-        address: getAddress(beneficiary.walletAddress),
+        address: beneficiary.walletAddress ? getAddress(beneficiary.walletAddress) : zeroAddress,
         sharePercentage: Math.round(beneficiary.sharePercentage),
         name: beneficiary.name,
         email: beneficiary.email.trim(),
+        secretQuestion: beneficiary.secretQuestion?.trim(),
+        secretAnswerHash: beneficiary.secretAnswer ? hashSecretAnswer(beneficiary.secretAnswer) : undefined,
+        shareSecretQuestion: beneficiary.shareSecretQuestion ?? false,
       })),
       tokens: teritageData?.plan.tokens as any,
       checkInIntervalSeconds: teritageData?.plan.checkInIntervalSeconds,

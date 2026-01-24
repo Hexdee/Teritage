@@ -23,6 +23,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { formatAddress } from '@/lib/utils';
 import ShowError from '@/components/errors/display-error';
 import { waitForTransactionReceipt } from 'viem/actions';
+import { hashSecretAnswer } from '@/lib/secret';
 
 export const ZERO_ADDRESS = zeroAddress;
 
@@ -40,6 +41,7 @@ const HAS_ABI = parseAbi([
 
 const MAX_UINT256 = (BigInt(2) ** BigInt(256)) - BigInt(1);
 const MAX_HBAR_ALLOWANCE = (BigInt(2) ** BigInt(63)) - BigInt(1); // Hedera tinybar allowance cap (int64 max)
+const ZERO_HASH = '0x0000000000000000000000000000000000000000000000000000000000000000' as const;
 
 type ApprovalStatus = 'idle' | 'pending' | 'success' | 'error';
 
@@ -380,8 +382,24 @@ export default function TokenAllocation({ handleNext }: TokenAllocationProps) {
         address: token.type === 'HBAR' ? ZERO_ADDRESS : getAddress(token.address as string),
       }));
 
-      const inheritorAddresses = beneficiaries.map((beneficiary) => getAddress(beneficiary.walletAddress || ''));
-      const shares = beneficiaries.map((beneficiary) => Math.round(beneficiary.sharePercentage * 100));
+      const normalizedInheritors = beneficiaries.map((beneficiary) => {
+        const resolvedAddress = beneficiary.walletAddress ? getAddress(beneficiary.walletAddress) : ZERO_ADDRESS;
+        return {
+          address: resolvedAddress,
+          sharePercentage: Math.round(beneficiary.sharePercentage),
+          name: formatName(beneficiary),
+          email: beneficiary.email.trim(),
+          secretQuestion: beneficiary.secretQuestion?.trim(),
+          secretAnswerHash: beneficiary.secretAnswer ? hashSecretAnswer(beneficiary.secretAnswer) : undefined,
+          shareSecretQuestion: beneficiary.shareSecretQuestion ?? false,
+        };
+      });
+
+      const inheritorAddresses = normalizedInheritors.map((beneficiary) => getAddress(beneficiary.address));
+      const shares = normalizedInheritors.map((beneficiary) => Math.round(beneficiary.sharePercentage * 100));
+      const secretHashes = normalizedInheritors.map(
+        (beneficiary) => (beneficiary.secretAnswerHash ?? ZERO_HASH) as `0x${string}`
+      );
 
       const sanitizedSocialLinks = socialLinks.map((link) => link.url.trim()).filter((url) => url.length > 0);
 
@@ -389,11 +407,14 @@ export default function TokenAllocation({ handleNext }: TokenAllocationProps) {
 
       const backendPayload = {
         ownerAddress: getAddress(address),
-        inheritors: beneficiaries.map((beneficiary) => ({
-          address: getAddress(beneficiary.walletAddress || ''),
-          sharePercentage: Math.round(beneficiary.sharePercentage),
-          name: formatName(beneficiary),
-          email: beneficiary.email.trim(),
+        inheritors: normalizedInheritors.map((beneficiary) => ({
+          address: beneficiary.address,
+          sharePercentage: beneficiary.sharePercentage,
+          name: beneficiary.name,
+          email: beneficiary.email,
+          secretQuestion: beneficiary.secretQuestion,
+          secretAnswerHash: beneficiary.secretAnswerHash,
+          shareSecretQuestion: beneficiary.shareSecretQuestion,
         })),
         tokens: normalizedTokens.map((token) => ({
           type: token.type,
@@ -407,6 +428,7 @@ export default function TokenAllocation({ handleNext }: TokenAllocationProps) {
       await createPlan({
         inheritors: inheritorAddresses,
         shares,
+        secretHashes,
         tokens: normalizedTokens.map((token) => ({
           type: token.type,
           address: getAddress(token.address),

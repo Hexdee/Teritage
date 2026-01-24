@@ -17,6 +17,11 @@ async function main() {
   await contract.waitForDeployment();
 
   console.log(`TeritageInheritance deployed at ${contract.target}`);
+
+  const relayerAddress = process.env.RELAYER_ADDRESS || deployer.address;
+  const setRelayerTx = await contract.setRelayer(relayerAddress);
+  await setRelayerTx.wait();
+  console.log(`Relayer set to ${relayerAddress}`);
 }
 
 main().catch((error) => {

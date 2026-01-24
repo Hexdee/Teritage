@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { isAddress, getAddress } from 'viem';
+import { isAddress, getAddress, zeroAddress } from 'viem';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -25,7 +25,11 @@ const beneficiarySchema = z
     walletAddress: z
       .string()
       .optional()
-      .refine((value) => !value || isAddress(value), {
+      .refine((value) => {
+        if (!value) return true;
+        if (!isAddress(value)) return false;
+        return getAddress(value) !== zeroAddress;
+      }, {
         message: 'Enter a valid EVM address',
       }),
     sharePercentage: z.coerce.number().min(1, { message: 'Share must be at least 1%' }).max(100, { message: 'Share cannot exceed 100%' }),
@@ -39,10 +43,10 @@ const beneficiarySchema = z
       // Must have either a valid wallet address OR a secret question and answer
       const hasWallet = data.walletAddress && data.walletAddress.length > 0;
       const hasSecret = data.secretQuestion && data.secretQuestion.length > 0 && data.secretAnswer && data.secretAnswer.length > 0;
-      return hasWallet || hasSecret;
+      return (hasWallet || hasSecret) && !(hasWallet && hasSecret);
     },
     {
-      message: 'Kindly provide either a wallet address or a secret question and answer',
+      message: 'Provide either a wallet address or a secret question and answer',
       path: ['walletAddress'], // Show error on wallet address field by default
     }
   );
