@@ -1,5 +1,4 @@
 <div align="center">
-
 # Teritage — Secure Digital Inheritance on Hedera
 
 Onchain Finance & RWA Track · Hedera Africa Hackathon 2025
@@ -173,9 +172,11 @@ This monorepo contains three packages:
    - Claim scheduler & contract watcher start automatically when env vars are set.
 
 3. **Frontend**
+
    ```bash
    yarn dev                # from repository root
    ```
+
    - Access the UI at http://localhost:3000
    - Use the demo credentials supplied in the submission notes or create new accounts.
 
