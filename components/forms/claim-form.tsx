@@ -25,7 +25,7 @@ const verifySchema = z.object({
 });
 
 const walletSchema = z.object({
-  beneficiaryWallet: z.string().refine((val) => isAddress(val), {
+  beneficiaryWallet: z.string().refine((val) => Boolean(isAddress(val)), {
     message: 'Enter a valid EVM wallet address',
   }),
 });

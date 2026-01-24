@@ -38,7 +38,7 @@ export default function ManageAllocation({ beneficiary, totalValue, setCurrentSt
   const [newAllocation, setNewAllocation] = useState<number[]>([beneficiary.sharePercentage]);
   const [errorField, setErrorField] = useState<string | null>(null);
   const { setBeneficiaries } = useInheritancePlanStore();
-  const isPending = beneficiary.full_wallet_address?.toLowerCase() === ZERO_ADDRESS;
+  const isBeneficiaryPending = beneficiary.full_wallet_address?.toLowerCase() === ZERO_ADDRESS;
 
   const { mutate, isPending } = useMutation({
     mutationFn: updateTeritagePlanApi,
@@ -126,7 +126,9 @@ export default function ManageAllocation({ beneficiary, totalValue, setCurrentSt
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2">
             <span className="mr-2 md:mr-0">Wallet:</span>
-            <span className="text-inverse font-mono flex justify-start md:justify-end">{isPending ? 'Pending' : beneficiary.full_wallet_address}</span>
+            <span className="text-inverse font-mono flex justify-start md:justify-end">
+              {isBeneficiaryPending ? 'Pending' : beneficiary.full_wallet_address}
+            </span>
           </div>
         </div>
 
