@@ -40,7 +40,7 @@ export interface TeritageTokenConfig {
 }
 
 export interface TeritageInheritorInput {
-  address: string;
+  address?: string;
   sharePercentage: number;
   name?: string;
   email?: string;

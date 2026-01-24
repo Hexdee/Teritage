@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useWriteContract, useReadContract } from 'wagmi';
+import { useWriteContract, useReadContract, useAccount } from 'wagmi';
 import { waitForTransactionReceipt } from 'viem/actions';
 import { createPublicClient, http, type Address } from 'viem';
 
@@ -10,6 +10,7 @@ import { TERITAGE_CHAIN_ID, TERITAGE_CONTRACT_ADDRESS, TERITAGE_TOKEN_TYPE_MAP }
 import type { CreateTeritagePlanRequest, UpdateTeritagePlanRequest, TeritageTokenConfig } from '@/type';
 import { createTeritagePlanApi, updateTeritagePlanApi, recordCheckInApi } from '@/config/apis';
 import { hederaTestnet } from 'wagmi/chains';
+import { decodeContractError } from '@/lib/blockchain/contract-errors';
 
 interface ContractTokenInput extends TeritageTokenConfig {
   address: Address;
@@ -69,20 +70,81 @@ export const wagmiPublicClient = createPublicClient({
 
 export function useTeritageContract() {
   const { writeContractAsync, isPending } = useWriteContract();
+  const { address: account } = useAccount();
+
+  const mapTeritageError = useCallback((name: string, args?: readonly unknown[]) => {
+    switch (name) {
+      case 'PlanAlreadyExists':
+        return 'You already have an active plan. Update it or clear it before creating a new one.';
+      case 'PlanNotFound':
+        return 'No plan found for this owner.';
+      case 'PlanInactive':
+        return 'This plan is inactive.';
+      case 'PlanAlreadyClaimed':
+        return 'This plan has already been claimed.';
+      case 'ClaimNotAvailable':
+        return 'Claim is not available yet. Check-in interval has not elapsed.';
+      case 'PendingInheritors':
+        return 'Resolve all pending beneficiaries before claiming.';
+      case 'InvalidConfiguration':
+        return 'Invalid plan configuration. Check beneficiaries, shares, tokens, and secrets.';
+      case 'NothingToDistribute':
+        return 'No assets available to distribute.';
+      case 'UnauthorizedOwner':
+        return 'Only the plan owner can perform this action.';
+      case 'UnauthorizedRelayer':
+        return 'Only the relayer can perform this action.';
+      case 'InsufficientAllowance': {
+        const token = typeof args?.[0] === 'string' ? args[0] : undefined;
+        return token
+          ? `Insufficient allowance for token ${token}. Approve a higher amount.`
+          : 'Insufficient allowance. Approve a higher amount.';
+      }
+      case 'HederaTokenTransferFailed': {
+        const token = typeof args?.[0] === 'string' ? args[0] : undefined;
+        const code = typeof args?.[1] === 'bigint' || typeof args?.[1] === 'number' ? String(args[1]) : undefined;
+        return token && code
+          ? `Hedera token transfer failed for ${token} (code ${code}).`
+          : 'Hedera token transfer failed.';
+      }
+      case 'HederaTransferAmountOverflow':
+        return 'Transfer amount is too large for Hedera.';
+      default:
+        return undefined;
+    }
+  }, []);
 
   const execute = useCallback(
     async (args: { functionName: string; args?: unknown[] }) => {
       const address = ensureAddressConfigured();
-      const hash = await writeContractAsync({
-        address,
-        abi: TERITAGE_INHERITANCE_ABI,
-        chainId: TERITAGE_CHAIN_ID,
-        ...args,
-      });
-      await waitForTransactionReceipt(wagmiPublicClient, { hash });
-      return hash;
+      if (!account) {
+        throw new Error('Connect your wallet to continue.');
+      }
+
+      try {
+        const { request } = await wagmiPublicClient.simulateContract({
+          address,
+          abi: TERITAGE_INHERITANCE_ABI,
+          functionName: args.functionName,
+          args: args.args,
+          account,
+        });
+
+        const hash = await writeContractAsync({
+          chainId: TERITAGE_CHAIN_ID,
+          ...request,
+        });
+        const receipt = await waitForTransactionReceipt(wagmiPublicClient, { hash });
+        if (receipt.status !== 'success') {
+          throw new Error('Transaction reverted');
+        }
+        return hash;
+      } catch (error) {
+        const decoded = decodeContractError(error, TERITAGE_INHERITANCE_ABI, mapTeritageError);
+        throw new Error(decoded.message);
+      }
     },
-    [writeContractAsync]
+    [account, mapTeritageError, writeContractAsync]
   );
 
   const createPlan = useCallback(

@@ -24,6 +24,7 @@ import { formatAddress } from '@/lib/utils';
 import ShowError from '@/components/errors/display-error';
 import { waitForTransactionReceipt } from 'viem/actions';
 import { hashSecretAnswer } from '@/lib/secret';
+import { decodeContractError } from '@/lib/blockchain/contract-errors';
 
 export const ZERO_ADDRESS = zeroAddress;
 
@@ -293,7 +294,10 @@ export default function TokenAllocation({ handleNext }: TokenAllocationProps) {
               functionName: 'hbarApprove',
               args: [ownerAddress, spenderAddress, MAX_HBAR_ALLOWANCE],
             });
-            await waitForTransactionReceipt(wagmiPublicClient, { hash });
+            const receipt = await waitForTransactionReceipt(wagmiPublicClient, { hash });
+            if (receipt.status !== 'success') {
+              throw new Error('HBAR approval transaction reverted');
+            }
           } else {
             let approvalSucceeded = false;
             try {
@@ -303,7 +307,10 @@ export default function TokenAllocation({ handleNext }: TokenAllocationProps) {
                 functionName: 'approve',
                 args: [spenderAddress, MAX_UINT256],
               });
-              await waitForTransactionReceipt(wagmiPublicClient, { hash });
+              const receipt = await waitForTransactionReceipt(wagmiPublicClient, { hash });
+              if (receipt.status !== 'success') {
+                throw new Error('Token approval transaction reverted');
+              }
               approvalSucceeded = true;
             } catch (initialError) {
               try {
@@ -313,7 +320,10 @@ export default function TokenAllocation({ handleNext }: TokenAllocationProps) {
                   functionName: 'approve',
                   args: [spenderAddress, BigInt(0)],
                 });
-                await waitForTransactionReceipt(wagmiPublicClient, { hash: resetHash });
+                const resetReceipt = await waitForTransactionReceipt(wagmiPublicClient, { hash: resetHash });
+                if (resetReceipt.status !== 'success') {
+                  throw new Error('Token allowance reset reverted');
+                }
 
                 const retryHash = await writeContractAsync({
                   address: token.address,
@@ -321,7 +331,10 @@ export default function TokenAllocation({ handleNext }: TokenAllocationProps) {
                   functionName: 'approve',
                   args: [spenderAddress, MAX_UINT256],
                 });
-                await waitForTransactionReceipt(wagmiPublicClient, { hash: retryHash });
+                const retryReceipt = await waitForTransactionReceipt(wagmiPublicClient, { hash: retryHash });
+                if (retryReceipt.status !== 'success') {
+                  throw new Error('Token approval retry reverted');
+                }
                 approvalSucceeded = true;
               } catch (resetError) {
                 throw resetError ?? initialError;
@@ -338,19 +351,21 @@ export default function TokenAllocation({ handleNext }: TokenAllocationProps) {
             [token.key]: { status: 'success' },
           }));
         } catch (error) {
-          const message = error instanceof Error ? error.message : 'Approval failed';
+          const decoded = decodeContractError(error, token.isHbar ? HAS_ABI : ERC20_ABI);
+          const message = decoded.message || 'Approval failed';
           setApprovalState((prev) => ({
             ...prev,
             [token.key]: { status: 'error', message },
           }));
-          throw error;
+          throw new Error(message);
         }
       }
 
       await checkAllowances();
       toast.success('Tokens approved successfully');
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to approve tokens';
+      const decoded = decodeContractError(error, HAS_ABI);
+      const message = decoded.message || (error instanceof Error ? error.message : 'Failed to approve tokens');
       toast.error(message);
     } finally {
       setIsApproving(false);
@@ -382,7 +397,7 @@ export default function TokenAllocation({ handleNext }: TokenAllocationProps) {
         address: token.type === 'HBAR' ? ZERO_ADDRESS : getAddress(token.address as string),
       }));
 
-      const normalizedInheritors = beneficiaries.map((beneficiary) => {
+      const chainInheritors = beneficiaries.map((beneficiary) => {
         const resolvedAddress = beneficiary.walletAddress ? getAddress(beneficiary.walletAddress) : ZERO_ADDRESS;
         return {
           address: resolvedAddress,
@@ -395,9 +410,9 @@ export default function TokenAllocation({ handleNext }: TokenAllocationProps) {
         };
       });
 
-      const inheritorAddresses = normalizedInheritors.map((beneficiary) => getAddress(beneficiary.address));
-      const shares = normalizedInheritors.map((beneficiary) => Math.round(beneficiary.sharePercentage * 100));
-      const secretHashes = normalizedInheritors.map(
+      const inheritorAddresses = chainInheritors.map((beneficiary) => getAddress(beneficiary.address));
+      const shares = chainInheritors.map((beneficiary) => Math.round(beneficiary.sharePercentage * 100));
+      const secretHashes = chainInheritors.map(
         (beneficiary) => (beneficiary.secretAnswerHash ?? ZERO_HASH) as `0x${string}`
       );
 
@@ -407,8 +422,8 @@ export default function TokenAllocation({ handleNext }: TokenAllocationProps) {
 
       const backendPayload = {
         ownerAddress: getAddress(address),
-        inheritors: normalizedInheritors.map((beneficiary) => ({
-          address: beneficiary.address,
+        inheritors: chainInheritors.map((beneficiary) => ({
+          address: beneficiary.secretAnswerHash ? undefined : beneficiary.address,
           sharePercentage: beneficiary.sharePercentage,
           name: beneficiary.name,
           email: beneficiary.email,

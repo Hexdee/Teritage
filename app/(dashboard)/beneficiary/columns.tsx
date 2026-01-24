@@ -100,7 +100,11 @@ export const ActionCell = ({ data }: ActionCellProps) => {
 
     const payload: UpdateTeritagePlanRequest = {
       inheritors: inheritors?.map((beneficiary) => ({
-        address: beneficiary.walletAddress ? getAddress(beneficiary.walletAddress) : zeroAddress,
+        address: beneficiary.secretAnswer
+          ? undefined
+          : beneficiary.walletAddress
+            ? getAddress(beneficiary.walletAddress)
+            : zeroAddress,
         sharePercentage: Math.round(beneficiary.sharePercentage),
         name: beneficiary.name,
         email: beneficiary.email.trim(),

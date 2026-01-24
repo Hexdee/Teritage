@@ -30,7 +30,8 @@ const inheritorSchema = z.object({
   secretAnswerHash: secretHashSchema.optional(),
   shareSecretQuestion: z.boolean().optional()
 }).superRefine((inheritor, ctx) => {
-  const hasAddress = Boolean(inheritor.address && inheritor.address.length > 0);
+  const normalizedAddress = inheritor.address?.trim().toLowerCase();
+  const hasAddress = Boolean(normalizedAddress && normalizedAddress !== ZERO_ADDRESS);
   const hasSecret = Boolean(inheritor.secretAnswerHash);
 
   if (!hasAddress && !hasSecret) {
@@ -290,6 +291,16 @@ function isPopulatedUser(value: unknown): value is IUser & { id: string } {
 }
 
 function handleControllerError(context: string, err: unknown, res: Response) {
+  if (err instanceof z.ZodError) {
+    res.status(400).json({
+      message: "Validation failed",
+      errors: err.issues.map((issue) => ({
+        path: issue.path.join("."),
+        message: issue.message
+      }))
+    });
+    return;
+  }
   if (err instanceof ApiError) {
     logger.error(`[${context}] ${err.message}`, err);
     res.status(err.status).json({ message: err.message });
@@ -309,8 +320,9 @@ function normalizeInheritors(
   inheritors: z.infer<typeof inheritorSchema>[]
 ): ITeritagePlan["inheritors"] {
   return inheritors.map((inheritor) => {
-    const hasAddress = Boolean(inheritor.address && inheritor.address.trim().length > 0);
-    const address = hasAddress ? inheritor.address!.trim() : ZERO_ADDRESS;
+    const normalizedAddress = inheritor.address?.trim();
+    const hasAddress = Boolean(normalizedAddress && normalizedAddress.toLowerCase() !== ZERO_ADDRESS);
+    const address = hasAddress ? normalizedAddress : ZERO_ADDRESS;
 
     return {
       address: address.toLowerCase(),

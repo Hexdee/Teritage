@@ -7,6 +7,24 @@ const HEDERA_PRECOMPILE = "0x0000000000000000000000000000000000000167";
 const ZERO_ADDRESS = ethers.ZeroAddress;
 const ZERO_HASH = ethers.ZeroHash;
 const noSecrets = (count) => Array(count).fill(ZERO_HASH);
+const hashAnswer = (answer) => ethers.keccak256(ethers.toUtf8Bytes(answer.trim().toLowerCase()));
+const randomWords = (count) => {
+  const bank = [
+    "amber",
+    "river",
+    "cobalt",
+    "fog",
+    "quiet",
+    "ember",
+    "forest",
+    "lumen",
+    "orbit",
+    "terra",
+    "zephyr",
+    "mosaic",
+  ];
+  return Array.from({ length: count }, (_, i) => `${bank[(i * 3) % bank.length]} ${bank[(i * 7 + 2) % bank.length]}`);
+};
 const WEI_PER_TINYBAR = 10_000_000_000n;
 
 async function setNativeTinybarBalance(address, tinybars) {
@@ -22,7 +40,7 @@ async function setupHtsPrecompile() {
 }
 
 async function deployFixture() {
-  const [owner, inheritorA, inheritorB, outsider] = await ethers.getSigners();
+  const [owner, inheritorA, inheritorB, outsider, relayer] = await ethers.getSigners();
 
   const tokenA = await ethers.deployContract("MockERC20", ["Teritage Token", "TGT"]);
   await tokenA.waitForDeployment();
@@ -52,6 +70,7 @@ async function deployFixture() {
     inheritorA,
     inheritorB,
     outsider,
+    relayer,
     tokenA,
     tokenB,
     erc20Amount,
@@ -143,7 +162,8 @@ describe("TeritageInheritance", function () {
     const { owner, inheritorA, inheritorB, tokenA, teritage, erc20Amount, hts, htsToken, htsBalance } =
       await loadFixture(deployFixture);
 
-    const hbarBalance = 50_000;
+    const hbarBalance = 50_000n;
+    const hbarBalanceWei = hbarBalance * WEI_PER_TINYBAR;
 
     await teritage
       .connect(owner)
@@ -158,8 +178,8 @@ describe("TeritageInheritance", function () {
 
     await tokenA.connect(owner).approve(await teritage.getAddress(), ethers.MaxUint256);
     await hts.setAllowance(htsToken, owner.address, await teritage.getAddress(), Number(htsBalance));
-    await hts.setHbarBalance(owner.address, hbarBalance);
-    await hts.setHbarAllowance(owner.address, await teritage.getAddress(), hbarBalance);
+    await hts.setHbarBalance(owner.address, hbarBalanceWei);
+    await hts.setHbarAllowance(owner.address, await teritage.getAddress(), hbarBalanceWei);
     await setNativeTinybarBalance(owner.address, hbarBalance);
 
     await time.increase(ONE_DAY + 5);
@@ -185,8 +205,8 @@ describe("TeritageInheritance", function () {
 
     const inheritorAHbar = await hts.getAccountBalance(inheritorA.address);
     const inheritorBHbar = await hts.getAccountBalance(inheritorB.address);
-    const expectedAHbar = (BigInt(hbarBalance) * 6000n) / 10000n;
-    const expectedBHbar = BigInt(hbarBalance) - expectedAHbar;
+    const expectedAHbar = (hbarBalanceWei * 6000n) / 10000n;
+    const expectedBHbar = hbarBalanceWei - expectedAHbar;
 
     expect(inheritorAHbar).to.equal(expectedAHbar);
     expect(inheritorBHbar).to.equal(expectedBHbar);
@@ -204,7 +224,8 @@ describe("TeritageInheritance", function () {
     const { owner, inheritorA, inheritorB, outsider, tokenA, teritage, erc20Amount, hts, htsToken, htsBalance } =
       await loadFixture(deployFixture);
 
-    const hbarBalance = 75_000;
+    const hbarBalance = 75_000n;
+    const hbarBalanceWei = hbarBalance * WEI_PER_TINYBAR;
 
     await teritage
       .connect(owner)
@@ -219,8 +240,8 @@ describe("TeritageInheritance", function () {
 
     await tokenA.connect(owner).approve(await teritage.getAddress(), ethers.MaxUint256);
     await hts.setAllowance(htsToken, owner.address, await teritage.getAddress(), Number(htsBalance));
-    await hts.setHbarBalance(owner.address, hbarBalance);
-    await hts.setHbarAllowance(owner.address, await teritage.getAddress(), hbarBalance);
+    await hts.setHbarBalance(owner.address, hbarBalanceWei);
+    await hts.setHbarAllowance(owner.address, await teritage.getAddress(), hbarBalanceWei);
     await setNativeTinybarBalance(owner.address, hbarBalance);
 
     await time.increase(ONE_DAY + 10);
@@ -241,8 +262,8 @@ describe("TeritageInheritance", function () {
 
     const inheritorAHbar = await hts.getAccountBalance(inheritorA.address);
     const inheritorBHbar = await hts.getAccountBalance(inheritorB.address);
-    const expectedAHbar = (BigInt(hbarBalance) * 6000n) / 10000n;
-    const expectedBHbar = BigInt(hbarBalance) - expectedAHbar;
+    const expectedAHbar = (hbarBalanceWei * 6000n) / 10000n;
+    const expectedBHbar = hbarBalanceWei - expectedAHbar;
     expect(inheritorAHbar).to.equal(expectedAHbar);
     expect(inheritorBHbar).to.equal(expectedBHbar);
 
@@ -384,15 +405,146 @@ describe("TeritageInheritance", function () {
         ONE_DAY
       );
 
-    await hts.setHbarBalance(owner.address, 1_000);
+    const hbarBalance = 1_000n;
+    const hbarBalanceWei = hbarBalance * WEI_PER_TINYBAR;
+
+    await hts.setHbarBalance(owner.address, hbarBalanceWei);
     await hts.setHbarAllowance(owner.address, await teritage.getAddress(), 100);
-    await setNativeTinybarBalance(owner.address, 1_000);
+    await setNativeTinybarBalance(owner.address, hbarBalance);
 
     await time.increase(ONE_DAY + 5);
 
     await expect(teritage.connect(inheritorA).claimInheritance(owner.address))
       .to.be.revertedWithCustomError(teritage, "HederaTokenTransferFailed")
       .withArgs(ZERO_ADDRESS, 1401);
+  });
+
+  it("allows secret-based inheritor resolution before claiming", async function () {
+    const { owner, inheritorA, inheritorB, relayer, tokenA, teritage, erc20Amount } =
+      await loadFixture(deployFixture);
+
+    await teritage.connect(owner).setRelayer(relayer.address);
+
+    const [secretAnswer] = randomWords(1);
+    const secretHash = hashAnswer(secretAnswer);
+
+    await teritage
+      .connect(owner)
+      .createPlan(
+        [ZERO_ADDRESS, inheritorB.address],
+        [5000, 5000],
+        [secretHash, ZERO_HASH],
+        [await tokenA.getAddress()],
+        [0],
+        ONE_DAY
+      );
+
+    await tokenA.connect(owner).approve(await teritage.getAddress(), ethers.MaxUint256);
+    await time.increase(ONE_DAY + 5);
+
+    await expect(teritage.connect(inheritorB).claimInheritance(owner.address))
+      .to.be.revertedWithCustomError(teritage, "PendingInheritors");
+
+    await expect(
+      teritage.connect(relayer).resolveInheritorWithSecret(owner.address, 0, inheritorA.address, secretAnswer)
+    ).to.emit(teritage, "InheritorResolved");
+
+    await teritage.connect(inheritorA).claimInheritance(owner.address);
+
+    const expectedA = (erc20Amount * 5000n) / 10000n;
+    const expectedB = erc20Amount - expectedA;
+    expect(await tokenA.balanceOf(inheritorA.address)).to.equal(expectedA);
+    expect(await tokenA.balanceOf(inheritorB.address)).to.equal(expectedB);
+  });
+
+  it("rejects pending inheritors without a secret hash", async function () {
+    const { owner, tokenA, teritage } = await loadFixture(deployFixture);
+
+    await expect(
+      teritage
+        .connect(owner)
+        .createPlan(
+          [ZERO_ADDRESS],
+          [10_000],
+          [ZERO_HASH],
+          [await tokenA.getAddress()],
+          [0],
+          ONE_DAY
+        )
+    ).to.be.revertedWithCustomError(teritage, "InvalidConfiguration");
+  });
+
+  it("rejects secret hash when inheritor address is provided", async function () {
+    const { owner, inheritorA, tokenA, teritage } = await loadFixture(deployFixture);
+
+    const [secretAnswer] = randomWords(1);
+    await expect(
+      teritage
+        .connect(owner)
+        .createPlan(
+          [inheritorA.address],
+          [10_000],
+          [hashAnswer(secretAnswer)],
+          [await tokenA.getAddress()],
+          [0],
+          ONE_DAY
+        )
+    ).to.be.revertedWithCustomError(teritage, "InvalidConfiguration");
+  });
+
+  it("allows multiple pending inheritors with distinct secrets", async function () {
+    const { owner, tokenA, teritage } = await loadFixture(deployFixture);
+
+    const secretAnswers = randomWords(2);
+    await expect(
+      teritage
+        .connect(owner)
+        .createPlan(
+          [ZERO_ADDRESS, ZERO_ADDRESS],
+          [5000, 5000],
+          secretAnswers.map(hashAnswer),
+          [await tokenA.getAddress()],
+          [0],
+          ONE_DAY
+        )
+    ).to.not.be.reverted;
+  });
+
+  it("enforces relayer-only and valid secret resolution", async function () {
+    const { owner, inheritorA, inheritorB, outsider, relayer, tokenA, teritage } =
+      await loadFixture(deployFixture);
+
+    await teritage.connect(owner).setRelayer(relayer.address);
+    const [secretAnswer] = randomWords(1);
+
+    await teritage
+      .connect(owner)
+      .createPlan(
+        [ZERO_ADDRESS, inheritorB.address],
+        [5000, 5000],
+        [hashAnswer(secretAnswer), ZERO_HASH],
+        [await tokenA.getAddress()],
+        [0],
+        ONE_DAY
+      );
+
+    await expect(
+      teritage.connect(outsider).resolveInheritorWithSecret(owner.address, 0, inheritorA.address, secretAnswer)
+    ).to.be.revertedWithCustomError(teritage, "UnauthorizedRelayer");
+
+    await expect(
+      teritage.connect(relayer).resolveInheritorWithSecret(owner.address, 0, inheritorA.address, "wrong")
+    ).to.be.revertedWithCustomError(teritage, "InvalidConfiguration");
+
+    await expect(
+      teritage.connect(relayer).resolveInheritorWithSecret(owner.address, 0, inheritorB.address, secretAnswer)
+    ).to.be.revertedWithCustomError(teritage, "InvalidConfiguration");
+
+    await teritage.connect(relayer).resolveInheritorWithSecret(owner.address, 0, inheritorA.address, secretAnswer);
+
+    await expect(
+      teritage.connect(relayer).resolveInheritorWithSecret(owner.address, 0, inheritorA.address, secretAnswer)
+    ).to.be.revertedWithCustomError(teritage, "InvalidConfiguration");
   });
 
 });
