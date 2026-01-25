@@ -2,7 +2,6 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
-import { useMediaQuery } from '@/hooks/use-media-query';
 import { Separator } from '../ui/separator';
 import { ArrowLeft } from '../icons';
 import Introduction from '../beneficiary/introduction';
@@ -22,9 +21,9 @@ import { TERITAGES_KEY, USER_PROFILE_KEY } from '@/config/key';
 import { BeneficiaryEntry } from '@/store/useInheritancePlanStore';
 import { getAddress, zeroAddress } from 'viem';
 import { hashSecretAnswer } from '@/lib/secret';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 export default function AddWalletContent() {
-  const isDesktop = useMediaQuery('(min-width: 768px)');
   const queryClient: any = useQueryClient();
   const { setCurrentStage, currentStage, openSheet, setOpenSheet, teritageData } = useApplications();
   const [currentWallet, setCurrentWallet] = useState<WalletToken | null>(null);
@@ -40,7 +39,7 @@ export default function AddWalletContent() {
       toast.success('Username updated successfully');
       setCurrentStage(6);
     },
-    onError: (error: any) => setUsernameError(error?.response?.data?.message || 'An error occured while processing'),
+    onError: (error: any) => setUsernameError(getApiErrorMessage(error, 'An error occured while processing')),
   });
 
   const { mutate: mutatePlan, isPending: isMutating } = useMutation({
@@ -50,7 +49,7 @@ export default function AddWalletContent() {
       toast.success('Plan updated successfully');
       setCurrentStage(6);
     },
-    onError: (error: any) => setUsernameError(error?.response?.data?.message || 'An error occured while processing'),
+    onError: (error: any) => setUsernameError(getApiErrorMessage(error, 'An error occured while processing')),
   });
 
   const handleMutatePlan = (values: BeneficiaryEntry[]) => {

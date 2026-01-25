@@ -19,6 +19,7 @@ import { setCookie, getCookie, deleteCookie } from 'cookies-next';
 import ShowError from '../errors/display-error';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 export const FormSchema = z
   .object({
@@ -70,7 +71,7 @@ export function SetPasswordForm() {
         router.push(AUTH_SET_USERNAME);
       }
     },
-    onError: (error: any) => setErrorMessage(error?.response?.data?.message || 'An error occured while processing'),
+    onError: (error: any) => setErrorMessage(getApiErrorMessage(error, 'An error occured while processing')),
   });
 
   async function onSubmit(values: z.infer<typeof FormSchema>) {

@@ -13,6 +13,7 @@ import FormGroup from '../ui/form-group';
 import { Eye, EyeOff } from 'lucide-react';
 import { changePasswordApi } from '@/config/apis';
 import { toast } from 'sonner';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 export const FormSchema = z
   .object({
@@ -57,9 +58,7 @@ export function ChangePasswordForm() {
       toast.success('Password updated successfully');
       form.reset();
     } catch (error) {
-      const message =
-        (error as any)?.response?.data?.message ?? (error instanceof Error ? error.message : 'Failed to update password');
-      toast.error(message);
+      toast.error(getApiErrorMessage(error, 'Failed to update password'));
     } finally {
       setIsSubmitting(false);
     }

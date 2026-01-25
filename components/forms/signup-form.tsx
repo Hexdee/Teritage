@@ -14,6 +14,7 @@ import { userSignUp } from '@/config/apis';
 import { toast } from 'sonner';
 import ShowError from '../errors/display-error';
 import { useState } from 'react';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 const FormSchema = z.object({
   email: z.string().email({
@@ -38,7 +39,7 @@ export function SignUpForm() {
       toast.success(response.message);
       router.push(`${VERIFY_URL}?email=${form.getValues('email')}`);
     },
-    onError: (error: any) => setErrorMessage(error?.response?.data?.message || 'An error occured while processing'),
+    onError: (error: any) => setErrorMessage(getApiErrorMessage(error, 'An error occured while processing')),
   });
 
   function onSubmit(values: z.infer<typeof FormSchema>) {

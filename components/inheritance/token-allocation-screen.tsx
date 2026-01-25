@@ -25,6 +25,7 @@ import ShowError from '@/components/errors/display-error';
 import { waitForTransactionReceipt } from 'viem/actions';
 import { hashSecretAnswer } from '@/lib/secret';
 import { decodeContractError } from '@/lib/blockchain/contract-errors';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 export const ZERO_ADDRESS = zeroAddress;
 
@@ -465,9 +466,9 @@ export default function TokenAllocation({ handleNext }: TokenAllocationProps) {
         router.push(SUCCESS_ALLOCATION_URL);
       }
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to save inheritance plan';
+      const message = getApiErrorMessage(error, 'Failed to save inheritance plan');
       setErrorMessage(message);
-      toast.error('An error occured');
+      toast.error(message);
     }
   }
 

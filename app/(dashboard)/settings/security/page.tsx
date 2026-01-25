@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-expressions */
 'use client';
 import { ArrowLeft, ChangePasswordIcon, ChangePinIcon } from '@/components/icons';
 import { ChevronRight } from 'lucide-react';

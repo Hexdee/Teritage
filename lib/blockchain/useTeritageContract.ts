@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import { useWriteContract, useReadContract, useAccount } from 'wagmi';
 import { waitForTransactionReceipt } from 'viem/actions';
-import { createPublicClient, http, type Address } from 'viem';
+import { createPublicClient, http, type Address, type Abi } from 'viem';
 
 import { TERITAGE_INHERITANCE_ABI } from '@/lib/abi/teritageInheritance';
 import { TERITAGE_CHAIN_ID, TERITAGE_CONTRACT_ADDRESS, TERITAGE_TOKEN_TYPE_MAP } from '@/lib/blockchain/constants';
@@ -140,7 +140,7 @@ export function useTeritageContract() {
         }
         return hash;
       } catch (error) {
-        const decoded = decodeContractError(error, TERITAGE_INHERITANCE_ABI, mapTeritageError);
+        const decoded = decodeContractError(error, TERITAGE_INHERITANCE_ABI as Abi, mapTeritageError);
         throw new Error(decoded.message);
       }
     },

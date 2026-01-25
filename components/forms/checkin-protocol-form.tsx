@@ -13,6 +13,7 @@ import { Trash } from 'lucide-react';
 import { getTeritagePlanApi } from '@/config/apis';
 import { toast } from 'sonner';
 import { useTeritageContract } from '@/lib/blockchain/useTeritageContract';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 const formSchema = z.object({
   interval: z.string().min(1, { message: 'Interval is required' }),
@@ -78,8 +79,8 @@ export default function CheckInProtocolForm() {
           socialLinks,
         });
       })
-      .catch(() => {
-        toast.error('Failed to load current check-in preferences');
+      .catch((error) => {
+        toast.error(getApiErrorMessage(error, 'Failed to load current check-in preferences'));
       });
 
     return () => {
@@ -104,10 +105,7 @@ export default function CheckInProtocolForm() {
 
       toast.success('Check-in protocol updated');
     } catch (error) {
-      const message =
-        (error as any)?.response?.data?.message ??
-        (error instanceof Error ? error.message : 'Failed to update check-in protocol');
-      toast.error(message);
+      toast.error(getApiErrorMessage(error, 'Failed to update check-in protocol'));
     } finally {
       setIsSubmitting(false);
     }

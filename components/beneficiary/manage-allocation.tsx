@@ -13,6 +13,7 @@ import { UpdateTeritagePlanRequest } from '@/type';
 import { useInheritancePlanStore } from '@/store/useInheritancePlanStore';
 import { useApplications } from '@/context/dashboard-provider';
 import { transformBeneficiaries } from '@/lib/utils';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(value);
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -48,7 +49,7 @@ export default function ManageAllocation({ beneficiary, totalValue, setCurrentSt
       setErrorField(null);
       setCurrentStage(1);
     },
-    onError: (error: any) => setErrorField(error?.response?.data?.message || 'An error occured while processing'),
+    onError: (error: any) => setErrorField(getApiErrorMessage(error, 'An error occured while processing')),
   });
 
   const handleChangeAllocation = () => {

@@ -18,6 +18,7 @@ import { ICheckIn, IUserCheckIn } from '@/type';
 import { capitalizeFirstLetter } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 export function UserCheckIn({ buttonClassName }: { buttonClassName?: string }) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -62,11 +63,9 @@ export function UserCheckIn({ buttonClassName }: { buttonClassName?: string }) {
       ]);
       toast.success('Checked in successfully');
     } catch (error) {
-      const message =
-        (error as any)?.response?.data?.message ??
-        (error instanceof Error ? error.message : 'Failed to process check-in');
+      const message = getApiErrorMessage(error, 'Failed to process check-in');
       setErrorMessage(message);
-      toast.error('Unable to complete check-in');
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }

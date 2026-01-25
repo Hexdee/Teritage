@@ -20,6 +20,7 @@ import InputAdornment from '../ui/input-adornment';
 import { ChevronRight, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { isAxiosError } from 'axios';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 const FormSchema = z.object({
   email: z.string().email({
@@ -55,13 +56,12 @@ export function LoginForm() {
           router.replace(CONNECT_WALLET_URL);
           return;
         }
-        const message = (error as any)?.response?.data?.message || (error instanceof Error ? error.message : 'Unable to load Teritage plan');
-        setErrorMessage(message);
+        setErrorMessage(getApiErrorMessage(error, 'Unable to load Teritage plan'));
       } finally {
         toast.success('Login successfully');
       }
     },
-    onError: (error: any) => setErrorMessage(error?.response?.data?.message || 'An error occured while processing'),
+    onError: (error: any) => setErrorMessage(getApiErrorMessage(error, 'An error occured while processing')),
   });
 
   function onSubmit(values: z.infer<typeof FormSchema>) {

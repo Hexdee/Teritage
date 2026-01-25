@@ -6,6 +6,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 export default function CreateUsername() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -17,7 +18,7 @@ export default function CreateUsername() {
       toast.success('Username created successfully');
       router.push(SUCCESS_URL);
     },
-    onError: (error: any) => setErrorMessage(error?.response?.data?.message || 'An error occured while processing'),
+    onError: (error: any) => setErrorMessage(getApiErrorMessage(error, 'An error occured while processing')),
   });
 
   const handleSubmit = (data: { username: string }) => {

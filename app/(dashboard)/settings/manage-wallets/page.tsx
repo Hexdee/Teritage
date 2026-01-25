@@ -27,6 +27,7 @@ import { useApplications } from '@/context/dashboard-provider';
 import { updateWalletAddressesApi } from '@/config/apis';
 import { USER_PROFILE_KEY } from '@/config/key';
 import { Plus } from 'lucide-react';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 const formatAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
 
@@ -50,8 +51,7 @@ export default function ManageWalletsSettings() {
   }
 
   if (isUserProfileError) {
-    const message =
-      (userProfileError as any)?.response?.data?.message ?? (userProfileError instanceof Error ? userProfileError.message : 'Unable to load wallets');
+    const message = getApiErrorMessage(userProfileError, 'Unable to load wallets');
     return (
       <div className="h-[70vh] flex items-center px-20">
         <div className="w-full space-y-6">
@@ -79,8 +79,7 @@ export default function ManageWalletsSettings() {
       await mutateAsync({ walletAddresses: updated });
       toast.success('Wallet removed successfully');
     } catch (error) {
-      const message = (error as any)?.response?.data?.message ?? (error instanceof Error ? error.message : 'Failed to remove wallet');
-      toast.error(message);
+      toast.error(getApiErrorMessage(error, 'Failed to remove wallet'));
     }
   };
 
@@ -106,8 +105,7 @@ export default function ManageWalletsSettings() {
       await mutateAsync({ walletAddresses: [...walletAddresses, normalized] });
       toast.success('Wallet added successfully');
     } catch (error) {
-      const message = (error as any)?.response?.data?.message ?? (error instanceof Error ? error.message : 'Failed to add wallet');
-      toast.error(message);
+      toast.error(getApiErrorMessage(error, 'Failed to add wallet'));
     }
   };
 

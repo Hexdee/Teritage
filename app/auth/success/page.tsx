@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 export default function SuccessPage() {
   const [isClient, setIsClient] = useState<boolean>(false);
   const router = useRouter();
-  const { isConnected, isConnecting } = useAccount();
+  const { isConnected } = useAccount();
 
   useEffect(() => {
     setIsClient(true);

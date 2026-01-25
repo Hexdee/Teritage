@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { getUserProfileApi, updateUserProfileApi } from '@/config/apis';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 const notificationSchema = z.object({
   allowNotifications: z.boolean().catch(false),
@@ -33,8 +34,8 @@ export default function NotificationForm() {
         if (!isMounted) return;
         form.reset({ allowNotifications: response.user.allowNotifications });
       })
-      .catch(() => {
-        toast.error('Failed to load notification preferences');
+      .catch((error) => {
+        toast.error(getApiErrorMessage(error, 'Failed to load notification preferences'));
       });
 
     return () => {
@@ -48,10 +49,7 @@ export default function NotificationForm() {
       await updateUserProfileApi({ allowNotifications: data.allowNotifications });
       toast.success('Notification preferences updated');
     } catch (error) {
-      const message =
-        (error as any)?.response?.data?.message ??
-        (error instanceof Error ? error.message : 'Failed to update notification preferences');
-      toast.error(message);
+      toast.error(getApiErrorMessage(error, 'Failed to update notification preferences'));
     } finally {
       setIsSubmitting(false);
     }

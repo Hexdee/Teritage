@@ -14,6 +14,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { claimLookup, claimSubmit, claimVerify } from '@/config/apis';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 const searchSchema = z.object({
   ownerEmail: z.string().email({ message: 'Enter a valid owner email' }),
@@ -70,7 +71,7 @@ export default function ClaimForm() {
       setStep('VERIFY');
       toast.success("Plan found! Please verify your identity.");
     } catch (error) {
-      toast.error("No active plan found for these details.");
+      toast.error(getApiErrorMessage(error, "No active plan found for these details."));
     } finally {
       setIsLoading(false);
     }
@@ -93,7 +94,7 @@ export default function ClaimForm() {
       setStep('WALLET');
       toast.success("Identity verified.");
     } catch (error) {
-      toast.error("Incorrect answer. Please try again.");
+      toast.error(getApiErrorMessage(error, "Incorrect answer. Please try again."));
     } finally {
       setIsLoading(false);
     }
@@ -117,7 +118,7 @@ export default function ClaimForm() {
       setStep('SUCCESS');
       toast.success(response.claimable ? "Claim submitted successfully!" : "Wallet saved. Claim will trigger once eligible.");
     } catch (error) {
-      toast.error("Failed to submit claim. Please try again.");
+      toast.error(getApiErrorMessage(error, "Failed to submit claim. Please try again."));
     } finally {
       setIsLoading(false);
     }

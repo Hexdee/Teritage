@@ -10,6 +10,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { useState } from 'react';
 import { verifyPinApi, changePinApi, createPinApi } from '@/config/apis';
 import { toast } from 'sonner';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 const FormSchema = z.object({
   pin: z.string().regex(/^[0-9]{4}$/, {
@@ -56,8 +57,7 @@ export function ChangePinForm({ setShowStage2, setCount, onVerified }: IChangePi
       setCount(1);
       setShowStage2(true);
     } catch (error) {
-      const message =
-        (error as any)?.response?.data?.message ?? (error instanceof Error ? error.message : 'Failed to verify PIN');
+      const message = getApiErrorMessage(error, 'Failed to verify PIN');
       form.setError('pin', { message });
       toast.error(message);
     } finally {
@@ -132,8 +132,7 @@ export function ChangePinForm2({ currentPin, hasExistingPin, onCompleted }: Chan
       form.reset();
       onCompleted();
     } catch (error) {
-      const message =
-        (error as any)?.response?.data?.message ?? (error instanceof Error ? error.message : 'Failed to update PIN');
+      const message = getApiErrorMessage(error, 'Failed to update PIN');
       form.setError('newPin', { message });
       toast.error(message);
     } finally {

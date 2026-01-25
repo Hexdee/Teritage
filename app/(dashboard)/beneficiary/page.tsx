@@ -5,6 +5,7 @@ import EmptyState from '@/components/ui/empty-state';
 import { useApplications } from '@/context/dashboard-provider';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { columns, ActionCell, NameCell } from './columns';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 const formatAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -17,8 +18,7 @@ export default function Beneficiary() {
   }
 
   if (isTeritageError) {
-    const message =
-      (teritageError as any)?.response?.data?.message ?? (teritageError instanceof Error ? teritageError?.message : 'Unable to load beneficiaries');
+    const message = getApiErrorMessage(teritageError, 'Unable to load beneficiaries');
     return (
       <div className="h-[70vh] flex items-center px-20">
         <div className="w-full space-y-6">

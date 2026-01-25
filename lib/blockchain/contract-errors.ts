@@ -17,10 +17,22 @@ export function decodeContractError(
   if (cause instanceof ContractFunctionRevertedError) {
     if (cause.data) {
       try {
-        const decoded = decodeErrorResult({ abi, data: cause.data });
-        const name = decoded.errorName;
-        const args = decoded.args;
-        const mapped = mapError ? mapError(name, args) : undefined;
+        let decodedName: string | undefined;
+        let decodedArgs: readonly unknown[] | undefined;
+
+        if (typeof cause.data === 'string') {
+          const decoded = decodeErrorResult({ abi, data: cause.data });
+          decodedName = decoded.errorName;
+          decodedArgs = decoded.args;
+        } else if (typeof cause.data === 'object' && 'errorName' in cause.data) {
+          const decoded = cause.data as { errorName?: string; args?: readonly unknown[] };
+          decodedName = decoded.errorName;
+          decodedArgs = decoded.args;
+        }
+
+        const name = decodedName;
+        const args = decodedArgs;
+        const mapped = mapError && name ? mapError(name, args) : undefined;
         if (mapped) {
           return { name, args, message: mapped };
         }

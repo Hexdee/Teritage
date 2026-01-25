@@ -21,6 +21,7 @@ import { BeneficiaryEntry } from '@/store/useInheritancePlanStore';
 import { getAddress, zeroAddress } from 'viem';
 import { Button } from '@/components/ui/button';
 import { hashSecretAnswer } from '@/lib/secret';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 export type BeneficiaryRow = {
   name: string;
@@ -87,7 +88,7 @@ export const ActionCell = ({ data }: ActionCellProps) => {
       toast.success('Plan updated successfully');
       setCurrentStage(1);
     },
-    onError: (error: any) => toast.error(error?.response?.data?.message || 'An error occured while processing'),
+    onError: (error: any) => toast.error(getApiErrorMessage(error, 'An error occured while processing')),
   });
 
   const handleMutatePlan = (values: BeneficiaryEntry[]) => {

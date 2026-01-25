@@ -18,6 +18,7 @@ import ShowError from '../errors/display-error';
 import { Loader } from 'lucide-react';
 
 import { setCookie } from 'cookies-next';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 const FormSchema = z.object({
   pin: z.string().min(6, {
@@ -43,7 +44,7 @@ export function VerifyForm() {
   const { mutate: mutateResend, isPending: isResending } = useMutation({
     mutationFn: type === 'reset' ? userForgotPassword : userSignUp,
     onSuccess: (response) => toast.success(response.message),
-    onError: (error: any) => setErrorMessage(error?.response?.data?.message || 'An error occured while processing'),
+    onError: (error: any) => setErrorMessage(getApiErrorMessage(error, 'An error occured while processing')),
   });
 
   const { mutate, isPending } = useMutation({
@@ -53,7 +54,7 @@ export function VerifyForm() {
       await setCookie('teritage_verification_token', response.verificationToken);
       router.push(`${SET_PASSWORD_URL}?email=${email}&type=${type}`);
     },
-    onError: (error: any) => setErrorMessage(error?.response?.data?.message || 'An error occured while processing'),
+    onError: (error: any) => setErrorMessage(getApiErrorMessage(error, 'An error occured while processing')),
   });
 
   const handleResend = () => {

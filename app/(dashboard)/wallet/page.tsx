@@ -12,6 +12,7 @@ import CurrencyText from '@/components/ui/currency-text';
 import { useApplications } from '@/context/dashboard-provider';
 
 import { columns } from './columns';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 const formatChangeLabel = (value: number) =>
   `${value > 0 ? '+' : ''}${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
@@ -56,9 +57,9 @@ export default function Wallet() {
     const err = walletError ?? walletTokenError;
     if (!err) return null;
     if (isAxiosError(err)) {
-      return err.response?.data?.message ?? err.message;
+      return getApiErrorMessage(err, err.message);
     }
-    return err instanceof Error ? err.message : 'Something went wrong while loading wallet data.';
+    return getApiErrorMessage(err, 'Something went wrong while loading wallet data.');
   })();
 
   if (isLoading) {
