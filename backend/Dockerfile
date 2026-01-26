@@ -27,9 +27,9 @@ ENV NODE_ENV="development"
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3
 
-# Install node modules
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+# Install node modules (handle missing lockfile)
+COPY package.json yarn.lock* ./
+RUN if [ -f yarn.lock ]; then yarn install --frozen-lockfile; else yarn install; fi
 
 # Copy application code
 COPY . .
@@ -39,7 +39,7 @@ RUN yarn run build
 
 # Reinstall dependencies in production mode to drop devDependencies
 ENV NODE_ENV="production"
-RUN rm -rf node_modules && yarn install --frozen-lockfile --production=true
+RUN rm -rf node_modules && if [ -f yarn.lock ]; then yarn install --frozen-lockfile --production=true; else yarn install --production=true; fi
 
 
 # Final stage for app image
