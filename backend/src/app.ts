@@ -1,5 +1,5 @@
 import cors from "cors";
-import express from "express";
+import express, { RequestHandler } from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -33,7 +33,9 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+const swaggerServe = swaggerUi.serve as unknown as RequestHandler[];
+const swaggerSetup = swaggerUi.setup(swaggerSpec) as unknown as RequestHandler;
+app.use("/docs", ...swaggerServe, swaggerSetup);
 
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api", adminRoutes);
