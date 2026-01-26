@@ -1,5 +1,4 @@
 /* eslint-disable @next/next/no-img-element */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -17,11 +16,25 @@ import { useAccount } from 'wagmi';
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(value);
 
+type WalletRow = {
+  name: string;
+  symbol: string;
+  priceUsd: number;
+  balance: number;
+  change24hPercent?: number | string | null;
+};
+
+type ColumnCellProps = {
+  row: {
+    original: WalletRow;
+  };
+};
+
 const columns: {
-  accessorKey: string;
+  accessorKey: keyof WalletRow | string;
   header: string;
   key: string;
-  cell?: (arg: any) => ReactNode;
+  cell?: (arg: ColumnCellProps) => ReactNode;
 }[] = [
   {
     accessorKey: 'name',

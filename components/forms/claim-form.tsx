@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { isAddress, getAddress } from 'viem';
-import { CheckCircle2, ChevronLeft, ChevronRight, Search, ShieldCheck, Wallet } from 'lucide-react';
+import { isAddress } from 'viem';
+import { CheckCircle2, ChevronLeft, Search, ShieldCheck, Wallet } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -23,7 +23,7 @@ const verifySchema = z.object({
 });
 
 const walletSchema = z.object({
-  beneficiaryWallet: z.string().refine((val) => isAddress(val), {
+  beneficiaryWallet: z.string().refine((val) => Boolean(isAddress(val)), {
     message: 'Enter a valid EVM wallet address',
   }),
 });
@@ -53,7 +53,7 @@ export default function ClaimForm() {
     defaultValues: { beneficiaryWallet: '' },
   });
 
-  const onSearchSubmit = async (values: z.infer<typeof searchSchema>) => {
+  const onSearchSubmit = async () => {
     setIsLoading(true);
     try {
       // Mock API call to check if plan exists and get secret question
@@ -63,35 +63,35 @@ export default function ClaimForm() {
       setSecretQuestion("What is your mother's maiden name?"); // Mock question
       setStep('VERIFY');
       toast.success("Plan found! Please verify your identity.");
-    } catch (error) {
+    } catch {
       toast.error("No active plan found for this email.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const onVerifySubmit = async (values: z.infer<typeof verifySchema>) => {
+  const onVerifySubmit = async () => {
     setIsLoading(true);
     try {
       // Mock API call to verify answer
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setStep('WALLET');
       toast.success("Identity verified.");
-    } catch (error) {
+    } catch {
       toast.error("Incorrect answer. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const onWalletSubmit = async (values: z.infer<typeof walletSchema>) => {
+  const onWalletSubmit = async () => {
     setIsLoading(true);
     try {
       // Mock API call to submit claim
       await new Promise((resolve) => setTimeout(resolve, 2000));
       setStep('SUCCESS');
       toast.success("Claim submitted successfully!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to submit claim. Please try again.");
     } finally {
       setIsLoading(false);

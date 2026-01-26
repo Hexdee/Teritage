@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { LOGIN_URL } from '@/config/path';
 import axios from 'axios';
 import { deleteCookie, getCookie } from 'cookies-next';

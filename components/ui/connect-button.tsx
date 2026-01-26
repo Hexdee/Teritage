@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Button } from './button';

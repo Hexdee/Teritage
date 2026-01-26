@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { WALLET_URL } from '@/config/path';
 import { useRouter } from 'next/navigation';
 
-export default function Error({ error, reset }: any) {
+export default function Error({ reset }: { reset: () => void }) {
   const router = useRouter();
   return (
     <div role="alert" className="flex flex-col gap-8 items-center pt-14 w-full bg-background">

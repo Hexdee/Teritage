@@ -3,12 +3,12 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 import { useApplications } from '@/context/dashboard-provider';
 import AddWalletContent from './wallets';
-import { Loader, WalletMinimal } from 'lucide-react';
+import { WalletMinimal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
 export default function UserProfile({ className }: { className?: string }) {
-  const { openSheet, setOpenSheet, isLoadingWalletsToken, userProfile } = useApplications();
+  const { openSheet, setOpenSheet, userProfile } = useApplications();
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   return (
@@ -39,8 +39,7 @@ export default function UserProfile({ className }: { className?: string }) {
 }
 
 export function UserProfileImage() {
-  const { isLoadingWalletsToken, userProfile } = useApplications();
-    const isDesktop = useMediaQuery('(min-width: 768px)');
+  const { userProfile } = useApplications();
   return (
     <>
       {/* {isLoadingWalletsToken ? (

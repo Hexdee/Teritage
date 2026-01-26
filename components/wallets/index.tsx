@@ -2,7 +2,6 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
-import { useMediaQuery } from '@/hooks/use-media-query';
 import { Separator } from '../ui/separator';
 import { ArrowLeft } from '../icons';
 import Introduction from '../beneficiary/introduction';
@@ -23,7 +22,6 @@ import { BeneficiaryEntry } from '@/store/useInheritancePlanStore';
 import { getAddress } from 'viem';
 
 export default function AddWalletContent() {
-  const isDesktop = useMediaQuery('(min-width: 768px)');
   const queryClient: any = useQueryClient();
   const { setCurrentStage, currentStage, openSheet, setOpenSheet, teritageData } = useApplications();
   const [currentWallet, setCurrentWallet] = useState<WalletToken | null>(null);
